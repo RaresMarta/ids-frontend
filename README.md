@@ -1,5 +1,5 @@
 
-  # Cyberpunk IDS Web Interface
+  # IDS Web Interface
 
   This is a code bundle for Cyberpunk IDS Web Interface. The original project is available at https://www.figma.com/design/5zA3ks7t8dr74L0x7ofAtS/Cyberpunk-IDS-Web-Interface.
 
