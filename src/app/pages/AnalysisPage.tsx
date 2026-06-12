@@ -1,186 +1,195 @@
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Shield, BarChart3, FileText, LogOut, Upload, FileCode, Database, Brain, Cpu, TreeDeciduous } from 'lucide-react';
-import GlassmorphicCard from '../components/GlassmorphicCard';
-import { useAuth } from '../../hooks/useAuth';
+import { useNavigate, useSearchParams } from 'react-router';
+import { Upload } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import { MODELS } from '../data/models';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:7860';
-
-const MODELS = [
-  { id: 'mlp', label: 'MLP Neural Network', icon: Brain },
-  { id: 'rf',  label: 'Random Forest',      icon: TreeDeciduous },
-  { id: 'xgb', label: 'XGBoost',            icon: Cpu },
-];
-
-const MODES = [
-  { id: '2', label: 'Binary (Attack / Benign)' },
-  { id: '8', label: '8-Class (Attack Family)' },
-];
+const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:7860';
 
 export default function AnalysisPage() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const [searchParams] = useSearchParams();
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const [inputType,    setInputType]    = useState<'csv' | 'pcap'>('csv');
-  const [selectedModel, setSelectedModel] = useState('mlp');
-  const [selectedMode,  setSelectedMode]  = useState('2');
-  const [dragActive,   setDragActive]   = useState(false);
-  const [file,         setFile]         = useState<File | null>(null);
-  const [loading,      setLoading]      = useState(false);
-  const [error,        setError]        = useState('');
+  const [modelId, setModelId] = useState(
+    () => (MODELS.find((m) => m.id === searchParams.get('model')) ?? MODELS[0]).id,
+  );
+  const [confidenceThreshold, setConfidenceThreshold] = useState(75);
+  const [dragActive, setDragActive] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
 
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
     setDragActive(e.type === 'dragenter' || e.type === 'dragover');
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    setDragActive(false);
-    const dropped = e.dataTransfer.files[0];
-    if (dropped) setFile(dropped);
+  const runAnalysis = async (file: File) => {
+    setIsProcessing(true);
+    setError('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('model_type', modelId);
+      form.append('mode', '8');
+      form.append('split', 'temporal');
+
+      const res = await fetch(`${API_URL}/api/classify`, { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? `Server error (${res.status})`);
+
+      navigate('/results', { state: { result: data } });
+    } catch (err: any) {
+      setError(err?.message ?? 'Analysis failed. Is the model server running?');
+      setIsProcessing(false);
+    }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = e.target.files?.[0];
-    if (picked) setFile(picked);
+    if (picked) runAnalysis(picked);
   };
 
-  const runAnalysis = async () => {
-    if (!file) return;
-    setLoading(true);
-    setError('');
-    try {
-      const form = new FormData();
-      form.append('file',       file);
-      form.append('model_type', selectedModel);
-      form.append('mode',       selectedMode);
-      form.append('split',      'temporal');
-      form.append('input_type', inputType);
-
-      const res  = await fetch(`${API_URL}/api/classify`, { method: 'POST', body: form });
-      const data = await res.json();
-
-      if (data.error) throw new Error(data.error);
-
-      navigate('/results', { state: { result: data } });
-    } catch (err: any) {
-      setError(err.message || 'Analysis failed. Is the model server running?');
-    } finally {
-      setLoading(false);
-    }
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped) runAnalysis(dropped);
   };
-
-  const handleLogout = async () => { await signOut(); navigate('/'); };
 
   return (
     <div className="min-h-screen bg-background flex">
-      <aside className="w-64 bg-sidebar border-r border-sidebar-border p-6 flex flex-col">
-        <div className="flex items-center gap-3 mb-10">
-          <Shield className="w-8 h-8" style={{ color: '#00D9FF', filter: 'drop-shadow(0 0 10px rgba(0, 217, 255, 0.5))' }} />
-          <h1 className="font-orbitron text-xl" style={{ color: '#00D9FF' }}>NEURAL IDS</h1>
-        </div>
-        <nav className="space-y-2 flex-1">
-          <button onClick={() => navigate('/dashboard')} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-all">
-            <BarChart3 className="w-5 h-5" /><span>Dashboard</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-            <FileText className="w-5 h-5" /><span>Analysis</span>
-          </button>
-        </nav>
-        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/70 hover:bg-red-500/10 hover:text-red-400 transition-all">
-          <LogOut className="w-5 h-5" /><span>Logout</span>
-        </button>
-      </aside>
+      <Sidebar active="analysis" />
 
-      <main className="flex-1 p-8 overflow-y-auto">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <h2 className="font-orbitron text-4xl" style={{ color: '#00D9FF', textShadow: '0 0 20px rgba(0, 217, 255, 0.3)' }}>
-            Traffic Analysis
-          </h2>
-
-          {/* Model selector */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <header className="flex items-center justify-between px-8 py-5 border-b border-border shrink-0">
           <div>
-            <label className="block text-sm mb-3 text-foreground/80 font-mono">MODEL</label>
-            <div className="grid grid-cols-3 gap-4">
-              {MODELS.map(({ id, label, icon: Icon }) => (
-                <button key={id} onClick={() => setSelectedModel(id)}
-                  className={`p-4 rounded-lg border transition-all ${selectedModel === id ? 'border-primary bg-primary/10' : 'border-primary/20 bg-card/60'}`}
-                  style={{ boxShadow: selectedModel === id ? '0 0 20px rgba(0, 217, 255, 0.2)' : 'none' }}>
-                  <Icon className="w-7 h-7 mx-auto mb-2" style={{ color: selectedModel === id ? '#00D9FF' : '#8B5CF6' }} />
-                  <div className="font-mono text-xs" style={{ color: selectedModel === id ? '#00D9FF' : '#E0E7FF' }}>{label}</div>
-                </button>
-              ))}
-            </div>
+            <h2 className="font-display text-lg text-foreground">Traffic Analysis</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Upload a capture file to classify network traffic</p>
           </div>
+        </header>
 
-          {/* Mode selector */}
-          <div>
-            <label className="block text-sm mb-3 text-foreground/80 font-mono">CLASSIFICATION MODE</label>
-            <div className="flex gap-4">
-              {MODES.map(({ id, label }) => (
-                <button key={id} onClick={() => setSelectedMode(id)}
-                  className={`flex-1 py-3 rounded-lg border font-mono text-sm transition-all ${selectedMode === id ? 'border-primary bg-primary/10' : 'border-primary/20 bg-card/60'}`}
-                  style={{ color: selectedMode === id ? '#00D9FF' : '#E0E7FF', boxShadow: selectedMode === id ? '0 0 20px rgba(0, 217, 255, 0.2)' : 'none' }}>
-                  {label}
-                </button>
-              ))}
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-3xl mx-auto space-y-6">
+
+            {/* Classifier picker */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Classifier
+              </p>
+              <div className="flex gap-2">
+                {MODELS.map((m) => {
+                  const Icon = m.icon;
+                  const isSelected = modelId === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setModelId(m.id)}
+                      className={`flex-1 flex items-center gap-3 p-4 rounded-md border text-left transition-all ${
+                        isSelected
+                          ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/15'
+                          : 'border-border bg-card hover:border-border/60'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div>
+                        <div className={`text-sm font-medium ${isSelected ? 'text-foreground' : 'text-foreground/70'}`}>
+                          {m.name}
+                        </div>
+                        <div className="font-mono text-xs text-muted-foreground mt-0.5">macro F1 {m.metrics.testMacroF1.toFixed(3)}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          {/* Input type */}
-          <div>
-            <label className="block text-sm mb-3 text-foreground/80 font-mono">INPUT TYPE</label>
-            <div className="flex gap-4">
-              {(['csv', 'pcap'] as const).map((type) => {
-                const Icon = type === 'csv' ? FileCode : Database;
-                return (
-                  <button key={type} onClick={() => { setInputType(type); setFile(null); }}
-                    className={`flex-1 p-4 rounded-lg border transition-all ${inputType === type ? 'border-primary bg-primary/10' : 'border-primary/20 bg-card/60'}`}
-                    style={{ boxShadow: inputType === type ? '0 0 20px rgba(0, 217, 255, 0.2)' : 'none' }}>
-                    <Icon className="w-8 h-8 mx-auto mb-2" style={{ color: inputType === type ? '#00D9FF' : '#8B5CF6' }} />
-                    <div className="font-mono text-sm" style={{ color: inputType === type ? '#00D9FF' : '#E0E7FF' }}>{type.toUpperCase()}</div>
-                  </button>
-                );
-              })}
+            {/* Drop zone */}
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileInput}
+              className="hidden"
+            />
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => !isProcessing && fileRef.current?.click()}
+              className={`relative flex flex-col items-center justify-center p-16 border-2 border-dashed rounded-md cursor-pointer transition-all ${
+                isProcessing
+                  ? 'border-primary/30 bg-primary/5 cursor-default'
+                  : dragActive
+                  ? 'border-primary/60 bg-primary/5'
+                  : 'border-border hover:border-border/50 hover:bg-muted/20'
+              }`}
+            >
+              {isProcessing ? (
+                <div className="text-center">
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-sm text-foreground">Processing file…</p>
+                  <p className="text-xs text-muted-foreground mt-1">Extracting features and running inference</p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <Upload className={`w-8 h-8 mx-auto mb-3 ${dragActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className="text-sm text-foreground">
+                    Drop your <span className="font-mono uppercase text-foreground/80">.csv</span> file here
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Drop zone */}
-          <input ref={fileRef} type="file" className="hidden"
-            accept={inputType === 'csv' ? '.csv' : '.pcap,.pcapng'}
-            onChange={handleFileInput} />
-
-          <div onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
-            onClick={() => fileRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-16 text-center cursor-pointer transition-all ${dragActive ? 'border-primary bg-primary/10' : file ? 'border-green-400/60 bg-green-400/5' : 'border-primary/40 bg-card/40'}`}
-            style={{ boxShadow: dragActive ? '0 0 40px rgba(0, 217, 255, 0.3)' : '0 0 20px rgba(0, 217, 255, 0.1)' }}>
-            <Upload className="w-16 h-16 mx-auto mb-4" style={{ color: file ? '#39FF14' : dragActive ? '#00D9FF' : '#8B5CF6' }} />
-            {file ? (
-              <>
-                <h3 className="font-orbitron text-xl mb-1" style={{ color: '#39FF14' }}>{file.name}</h3>
-                <p className="text-muted-foreground text-sm">{(file.size / 1024).toFixed(1)} KB — click to change</p>
-              </>
-            ) : (
-              <>
-                <h3 className="font-orbitron text-2xl mb-2" style={{ color: '#00D9FF' }}>Drop {inputType.toUpperCase()} File</h3>
-                <p className="text-muted-foreground">or click to browse</p>
-              </>
+            {error && (
+              <div className="px-4 py-3 bg-destructive/8 border border-destructive/25 rounded-md text-xs text-destructive" role="alert">
+                {error}
+              </div>
             )}
+
+            {/* Options */}
+            <div className="bg-card border border-border rounded-md p-5">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+                Advanced options
+              </p>
+              <div className="space-y-5">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-muted-foreground">Confidence threshold</label>
+                    <span className="font-mono text-xs text-foreground">{confidenceThreshold}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={confidenceThreshold}
+                    onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
+                    className="w-full h-1 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #D97941 0%, #D97941 ${confidenceThreshold}%, rgba(255,255,255,0.07) ${confidenceThreshold}%, rgba(255,255,255,0.07) 100%)`,
+                    }}
+                  />
+                  <div className="flex justify-between mt-1">
+                    <span className="text-xs text-muted-foreground/60">0%</span>
+                    <span className="text-xs text-muted-foreground/60">100%</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1.5">Output format</label>
+                  <select className="w-full px-3 py-2 bg-input border border-border rounded-md text-sm text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all">
+                    <option>Detailed report (JSON)</option>
+                    <option>Summary (TXT)</option>
+                    <option>Visualization (HTML)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
           </div>
-
-          {error && (
-            <GlassmorphicCard className="p-4 border-red-500/40" style={{ backgroundColor: 'rgba(255,0,85,0.05)' }}>
-              <p className="font-mono text-sm" style={{ color: '#FF0055' }}>{error}</p>
-            </GlassmorphicCard>
-          )}
-
-          <button onClick={runAnalysis} disabled={!file || loading}
-            className="w-full py-4 rounded-lg font-orbitron text-lg transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #00D9FF, #8B5CF6)', boxShadow: '0 0 30px rgba(0, 217, 255, 0.3)' }}>
-            {loading ? 'ANALYZING...' : 'RUN ANALYSIS'}
-          </button>
         </div>
       </main>
     </div>

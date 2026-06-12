@@ -3,7 +3,9 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import AnalysisPage from "./pages/AnalysisPage";
+import ComparisonPage from "./pages/ComparisonPage";
 import ResultsPage from "./pages/ResultsPage";
+import LiveMonitorPage from "./pages/LiveMonitorPage";
 
 export const router = createBrowserRouter([
   {
@@ -23,7 +25,16 @@ export const router = createBrowserRouter([
     Component: AnalysisPage,
   },
   {
+    path: "/compare",
+    Component: ComparisonPage,
+  },
+  {
     path: "/results",
     Component: ResultsPage,
+  },
+  {
+    // Public showcase — the live operator console (no auth gate).
+    path: "/monitor",
+    Component: LiveMonitorPage,
   },
 ]);

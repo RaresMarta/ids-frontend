@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import NetworkBackground from '../components/NetworkBackground';
-import GlassmorphicCard from '../components/GlassmorphicCard';
 import { Shield, CheckCircle2, XCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -12,19 +11,24 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const passwordStrength = () => {
     if (!password) return { strength: 0, label: '', color: '' };
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
+
     const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['#FF0055', '#FF8C00', '#FFD700', '#39FF14'];
-    return { strength: (strength / 4) * 100, label: labels[strength - 1] || 'Weak', color: colors[strength - 1] || '#FF0055' };
+    const colors = ['#DC4C4C', '#E8743A', '#C9A84C', '#4ADE80'];
+    return {
+      strength: (score / 4) * 100,
+      label: labels[score - 1] || 'Weak',
+      color: colors[score - 1] || '#DC4C4C',
+    };
   };
 
   const { strength, label, color } = passwordStrength();
@@ -33,14 +37,14 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!emailValid || !passwordsMatch || strength < 50) return;
-    setError('');
+    if (!(emailValid && passwordsMatch && strength >= 50 && username)) return;
     setLoading(true);
+    setError('');
     try {
       await signUp(email, password, username);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      setError(err?.message ?? 'Registration failed. Try a different email.');
     } finally {
       setLoading(false);
     }
@@ -48,124 +52,153 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen w-full flex">
-      <div className="flex-1 relative">
+      {/* Left panel */}
+      <div className="hidden lg:flex flex-1 relative flex-col items-center justify-center p-16">
         <NetworkBackground />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center px-8">
-            <Shield className="w-24 h-24 mx-auto mb-6" style={{ color: '#00D9FF', filter: 'drop-shadow(0 0 20px rgba(0, 217, 255, 0.6))' }} />
-            <h1 className="font-orbitron text-5xl mb-4" style={{ color: '#00D9FF', textShadow: '0 0 30px rgba(0, 217, 255, 0.5)' }}>
-              NEURAL IDS
-            </h1>
-            <p className="text-xl text-foreground/70">Secure Your Network Infrastructure</p>
+        <div className="relative z-10 max-w-sm">
+          <div className="flex items-center gap-2.5 mb-8">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="font-display text-sm tracking-wide text-foreground/80">Neural IDS</span>
+          </div>
+          <h1 className="font-display text-3xl text-foreground mb-4 leading-snug">
+            Request system access
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Create an account to begin analyzing network traffic with our machine learning classifiers.
+          </p>
+          <div className="mt-12 p-4 bg-card border border-border rounded-md">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This system is part of a bachelor thesis demonstration. Access is restricted to authorized research participants.
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="w-full lg:w-[500px] flex items-center justify-center p-8 bg-background overflow-y-auto">
-        <GlassmorphicCard className="w-full max-w-md p-8">
-          <h2 className="font-orbitron text-3xl mb-2" style={{ color: '#00D9FF' }}>Create Account</h2>
-          <p className="text-muted-foreground mb-8">Register for system access</p>
+      {/* Right panel — form */}
+      <div className="w-full lg:w-[440px] flex items-center justify-center p-8 bg-card border-l border-border overflow-y-auto">
+        <div className="w-full max-w-sm py-4">
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6 lg:hidden">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="font-display text-sm text-foreground/70">Neural IDS</span>
+            </div>
+            <h2 className="font-display text-2xl text-foreground mb-1">Create account</h2>
+            <p className="text-sm text-muted-foreground">Fill in the details below to register</p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm mb-2 text-foreground/80">Username</label>
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                Username
+              </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-input border border-primary/20 rounded-lg text-foreground focus:outline-none focus:border-primary transition-all"
-                style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)' }}
-                placeholder="neural_analyst"
+                className="w-full px-3 py-2.5 bg-input border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                placeholder="jane_analyst"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm mb-2 text-foreground/80">Email</label>
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                Email
+              </label>
               <div className="relative">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-input border border-primary/20 rounded-lg text-foreground focus:outline-none focus:border-primary transition-all pr-10"
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)' }}
-                  placeholder="user@neural-ids.com"
+                  className="w-full px-3 py-2.5 bg-input border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all pr-9"
+                  placeholder="you@example.com"
                   required
                 />
                 {email && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {emailValid
-                      ? <CheckCircle2 className="w-5 h-5" style={{ color: '#39FF14' }} />
-                      : <XCircle className="w-5 h-5" style={{ color: '#FF0055' }} />}
+                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                    {emailValid ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-destructive" />
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm mb-2 text-foreground/80">Password</label>
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                Password
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-input border border-primary/20 rounded-lg text-foreground focus:outline-none focus:border-primary transition-all"
-                style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)' }}
+                className="w-full px-3 py-2.5 bg-input border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
                 placeholder="••••••••"
                 required
               />
               {password && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-foreground/70">Password Strength</span>
-                    <span className="font-mono" style={{ color }}>{label}</span>
+                  <div className="w-full h-1 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full transition-all duration-300 rounded-full"
+                      style={{ width: `${strength}%`, backgroundColor: color }}
+                    />
                   </div>
-                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full transition-all duration-300" style={{ width: `${strength}%`, backgroundColor: color, boxShadow: `0 0 10px ${color}` }} />
-                  </div>
+                  <p className="text-xs mt-1" style={{ color }}>{label}</p>
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm mb-2 text-foreground/80">Confirm Password</label>
+              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+                Confirm password
+              </label>
               <div className="relative">
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-input border border-primary/20 rounded-lg text-foreground focus:outline-none focus:border-primary transition-all pr-10"
-                  style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)' }}
+                  className="w-full px-3 py-2.5 bg-input border border-border rounded-md text-foreground text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all pr-9"
                   placeholder="••••••••"
                   required
                 />
                 {confirmPassword && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {passwordsMatch
-                      ? <CheckCircle2 className="w-5 h-5" style={{ color: '#39FF14' }} />
-                      : <XCircle className="w-5 h-5" style={{ color: '#FF0055' }} />}
+                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                    {passwordsMatch ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-destructive" />
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
-            {error && <p className="text-sm font-mono" style={{ color: '#FF0055' }}>{error}</p>}
+            {error && (
+              <p className="text-xs text-destructive" role="alert">{error}</p>
+            )}
 
             <button
               type="submit"
-              disabled={!emailValid || !passwordsMatch || strength < 50 || loading}
-              className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-orbitron transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ boxShadow: '0 0 20px rgba(0, 217, 255, 0.3), 0 0 40px rgba(0, 217, 255, 0.1)' }}
+              disabled={!emailValid || !passwordsMatch || strength < 50 || !username || loading}
+              className="w-full py-2.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors mt-2"
             >
-              {loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
+              {loading ? 'Creating account…' : 'Create account'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button onClick={() => navigate('/')} className="text-primary hover:underline">
-              Already have an account? Login
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Already have an account?{' '}
+            <button
+              onClick={() => navigate('/')}
+              className="text-primary hover:text-primary/80 transition-colors"
+            >
+              Sign in
             </button>
-          </div>
-        </GlassmorphicCard>
+          </p>
+        </div>
       </div>
     </div>
   );
