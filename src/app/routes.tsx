@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -9,7 +10,12 @@ import LiveMonitorPage from "./pages/LiveMonitorPage";
 
 export const router = createBrowserRouter([
   {
+    // Public landing page.
     path: "/",
+    Component: LandingPage,
+  },
+  {
+    path: "/login",
     Component: LoginPage,
   },
   {

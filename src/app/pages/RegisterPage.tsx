@@ -192,7 +192,7 @@ export default function RegisterPage() {
           <p className="mt-6 text-center text-xs text-muted-foreground">
             Already have an account?{' '}
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/login')}
               className="text-primary hover:text-primary/80 transition-colors"
             >
               Sign in

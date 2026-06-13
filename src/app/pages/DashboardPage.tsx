@@ -12,7 +12,7 @@ export default function DashboardPage() {
   const [filterModel, setFilterModel] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) navigate('/');
+    if (!authLoading && !user) navigate('/login');
   }, [user, authLoading, navigate]);
 
   const filteredHistory = filterModel
