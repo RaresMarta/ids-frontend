@@ -1,213 +1,273 @@
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import {
-  Shield,
-  Activity,
-  FileSearch,
-  GitCompare,
-  ArrowRight,
-  Radio,
-  Layers,
-  Cpu,
-  Ban,
-} from 'lucide-react';
-import { MODELS, MLP_PER_CLASS_F1, ATTACK_COLORS, DEMO_CLASSES } from '../data/models';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'motion/react';
+import { MODELS } from '../data/models';
 
-const CAPABILITIES = [
-  {
-    icon: Activity,
-    title: 'Live detection & active response',
-    body:
-      'Captures real traffic off the wire, classifies each flow inline, and bans the source at the host firewall via nftables — an actual packet drop, not just an alert.',
-  },
-  {
-    icon: FileSearch,
-    title: 'Explainable classification',
-    body:
-      'Upload a capture and get a calibrated per-class probability breakdown plus the SHAP features that drove the verdict — the "why", not only the label.',
-  },
-  {
-    icon: GitCompare,
-    title: 'Model comparison',
-    body:
-      'MLP, Random Forest and XGBoost trained and evaluated on the same temporal split, so the numbers are comparable rather than cherry-picked.',
-  },
+// ─────────────────────────────────────────────────────────────────────────────
+// Scroll-driven walkthrough of one SYN flood, packet → ban. Strict black & white,
+// scoped to this page only (hardcoded neutrals, not the app theme tokens).
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STEPS = [
+  { n: '01', title: 'Calm', caption: 'A handful of flows move between a client and the server. Nothing unusual.' },
+  { n: '02', title: 'Flood', caption: 'An attacker opens a torrent of half-open connections — a SYN flood aimed at the server.' },
+  { n: '03', title: 'Capture', caption: 'A passive sensor beside the path copies every packet. The server itself is never touched.' },
+  { n: '04', title: 'Deconstruct', caption: 'Packets are grouped into a 10-packet window and reduced to 25 numeric features.' },
+  { n: '05', title: 'Verdict', caption: 'The two-head model reads the features. The gate is certain: Attack, 0.98 confidence.' },
+  { n: '06', title: 'Block', caption: 'The source IP is dropped at the firewall. Its packets never reach the server again.' },
 ];
 
-const PIPELINE = [
-  { icon: Radio, label: 'Capture', sub: 'AF_PACKET' },
-  { icon: Layers, label: '10-packet window', sub: 'per host pair' },
-  { icon: Layers, label: '25 features', sub: 'dpkt extractor' },
-  { icon: Cpu, label: 'Two-head model', sub: '2-class gate + 8-class family' },
-  { icon: Ban, label: 'Verdict & ban', sub: 'nftables drop' },
-];
+const INK = '#111111';
+
+// One traveling packet along the wire (left → right), looping.
+function Packet({ x0, x1, y, dur, delay }: { x0: number; x1: number; y: number; dur: number; delay: number }) {
+  return (
+    <motion.rect
+      x={0}
+      y={y - 3}
+      width={6}
+      height={6}
+      fill={INK}
+      initial={{ x: x0, opacity: 0 }}
+      animate={{ x: [x0, x1], opacity: [0, 1, 1, 0] }}
+      transition={{ duration: dur, delay, repeat: Infinity, ease: 'linear', times: [0, 0.1, 0.9, 1] }}
+    />
+  );
+}
+
+// Packet diverted down to the sensor.
+function TapPacket({ x, y0, y1, dur, delay }: { x: number; y0: number; y1: number; dur: number; delay: number }) {
+  return (
+    <motion.rect
+      x={x - 3}
+      y={0}
+      width={6}
+      height={6}
+      fill={INK}
+      initial={{ y: y0, opacity: 0 }}
+      animate={{ y: [y0, y1], opacity: [0, 1, 1, 0] }}
+      transition={{ duration: dur, delay, repeat: Infinity, ease: 'linear', times: [0, 0.15, 0.85, 1] }}
+    />
+  );
+}
+
+function Node({ x, y, w, label }: { x: number; y: number; w: number; label: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={44} rx={2} fill="#fff" stroke={INK} strokeWidth={1.5} />
+      <text x={x + w / 2} y={y + 27} textAnchor="middle" fontSize={13} fontFamily="'JetBrains Mono', monospace" fill={INK} letterSpacing={1}>
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function Stage({ step }: { step: number }) {
+  const WIRE_Y = 150;
+  const ATT_X = 70;
+  const SRV_X = 620;
+  const TAP_X = 410;
+  const SENSOR_Y = 300;
+  const flood = step >= 1 && step <= 4;
+  const blocked = step >= 5;
+  const tapped = step >= 2 && step <= 4;
+
+  // Packet stream tuned per step: calm = sparse/slow, flood = dense/fast.
+  const count = step === 0 ? 3 : flood ? 12 : 4;
+  const dur = step === 0 ? 3.4 : 1.1;
+  const endX = blocked ? TAP_X - 30 : SRV_X - 20;
+
+  return (
+    <svg viewBox="0 0 760 380" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+      {/* wire */}
+      <line x1={ATT_X + 110} y1={WIRE_Y} x2={SRV_X} y2={WIRE_Y} stroke={INK} strokeWidth={1.5} />
+
+      {/* tap line to sensor */}
+      <AnimatePresence>
+        {step >= 2 && (
+          <motion.line
+            x1={TAP_X} y1={WIRE_Y} x2={TAP_X} y2={SENSOR_Y}
+            stroke={INK} strokeWidth={1.5} strokeDasharray="4 4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* nodes */}
+      <Node x={ATT_X} y={WIRE_Y - 22} w={110} label="ATTACKER" />
+      <Node x={SRV_X} y={WIRE_Y - 22} w={110} label="SERVER" />
+      <AnimatePresence>
+        {step >= 2 && (
+          <motion.g initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <Node x={TAP_X - 55} y={SENSOR_Y} w={110} label="SENSOR" />
+          </motion.g>
+        )}
+      </AnimatePresence>
+
+      {/* wire packets */}
+      {Array.from({ length: count }).map((_, i) => (
+        <Packet key={`p${step}-${i}`} x0={ATT_X + 110} x1={endX} y={WIRE_Y} dur={dur} delay={(i * dur) / count} />
+      ))}
+
+      {/* diverted (captured) packets */}
+      {tapped &&
+        Array.from({ length: 6 }).map((_, i) => (
+          <TapPacket key={`t${i}`} x={TAP_X} y0={WIRE_Y} y1={SENSOR_Y - 4} dur={1.1} delay={(i * 1.1) / 6} />
+        ))}
+
+      {/* deconstruct: window + features */}
+      <AnimatePresence>
+        {step === 3 && (
+          <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <text x={TAP_X + 75} y={SENSOR_Y + 6} fontSize={11} fontFamily="'JetBrains Mono', monospace" fill={INK}>window ×10</text>
+            {['syn_flag_number 1.00', 'Rate ▲', 'IAT ▼', 'ack_count 0', '+21 more'].map((t, i) => (
+              <text key={t} x={TAP_X + 75} y={SENSOR_Y + 24 + i * 15} fontSize={10.5} fontFamily="'JetBrains Mono', monospace" fill="#555">
+                {t}
+              </text>
+            ))}
+          </motion.g>
+        )}
+      </AnimatePresence>
+
+      {/* verdict */}
+      <AnimatePresence>
+        {step === 4 && (
+          <motion.g initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}>
+            <rect x={TAP_X + 70} y={SENSOR_Y - 14} width={150} height={44} rx={2} fill={INK} />
+            <text x={TAP_X + 145} y={SENSOR_Y + 4} textAnchor="middle" fontSize={13} fontFamily="'JetBrains Mono', monospace" fill="#fff" letterSpacing={1}>ATTACK</text>
+            <text x={TAP_X + 145} y={SENSOR_Y + 21} textAnchor="middle" fontSize={10.5} fontFamily="'JetBrains Mono', monospace" fill="#bbb">gate 0.98</text>
+          </motion.g>
+        )}
+      </AnimatePresence>
+
+      {/* block: a bar slams across the wire */}
+      <AnimatePresence>
+        {blocked && (
+          <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.rect
+              x={TAP_X - 4} y={WIRE_Y - 26} width={8} height={52} fill={INK}
+              initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.4 }} style={{ originY: 0.5 }}
+            />
+            <text x={TAP_X} y={WIRE_Y - 36} textAnchor="middle" fontSize={10.5} fontFamily="'JetBrains Mono', monospace" fill={INK} letterSpacing={1}>
+              nftables drop
+            </text>
+          </motion.g>
+        )}
+      </AnimatePresence>
+    </svg>
+  );
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const journeyRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: journeyRef, offset: ['start start', 'end end'] });
+  const [step, setStep] = useState(0);
 
-  // Per-class F1, sorted so the "Mirai/DDoS detect well, Web/BruteForce poorly" story is legible.
-  const perClass = Object.entries(MLP_PER_CLASS_F1).sort(([, a], [, b]) => b - a);
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    setStep(Math.min(STEPS.length - 1, Math.max(0, Math.floor(p * STEPS.length))));
+  });
+
+  const active = STEPS[step];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-white text-neutral-900 antialiased">
       {/* Nav */}
-      <header className="border-b border-border">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Shield className="w-5 h-5 text-primary" />
-            <span className="font-display text-sm tracking-wide">Neural IDS</span>
-          </div>
-          <nav className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/monitor')}
-              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Live monitor
-            </button>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-3.5 py-1.5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Sign in
-            </button>
-          </nav>
+      <header className="fixed top-0 inset-x-0 z-50 bg-white/85 backdrop-blur border-b border-neutral-200">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <span className="font-mono text-xs tracking-[0.2em]">NEURAL·IDS</span>
+          <button
+            onClick={() => navigate('/login')}
+            className="font-mono text-xs tracking-[0.15em] px-4 py-2 border border-neutral-900 hover:bg-neutral-900 hover:text-white transition-colors"
+          >
+            SIGN IN
+          </button>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6">
-        {/* Hero */}
-        <section className="py-20 max-w-2xl">
-          <p className="font-mono text-xs text-primary mb-4">Bachelor thesis · CIC-IoT-2023</p>
-          <h1 className="font-display text-4xl leading-tight mb-5">
-            A machine-learning intrusion detection system for IoT networks.
-          </h1>
-          <p className="text-base text-muted-foreground leading-relaxed mb-8">
-            Captures live network traffic, classifies each flow with a neural model, and blocks
-            attacking hosts at the firewall in real time. Built and evaluated on the CIC-IoT-2023
-            dataset.
-          </p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/login')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              Sign in to the dashboard <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => navigate('/monitor')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 border border-border rounded-md text-sm hover:bg-muted/30 transition-colors"
-            >
-              <Activity className="w-4 h-4 text-primary" /> Watch the live monitor
-            </button>
-          </div>
-        </section>
+      {/* Hero */}
+      <section className="min-h-screen flex flex-col justify-center max-w-5xl mx-auto px-6">
+        <p className="font-mono text-xs tracking-[0.25em] text-neutral-500 mb-6">INTRUSION DETECTION · BACHELOR THESIS</p>
+        <h1 className="font-mono text-5xl md:text-6xl leading-[1.05] tracking-tight mb-6">
+          From packet<br />to ban.
+        </h1>
+        <p className="text-lg text-neutral-600 max-w-xl leading-relaxed mb-10">
+          A neural intrusion detection system that captures live traffic, classifies every flow, and blocks
+          attackers in real time. Scroll to watch it happen — one attack, start to finish.
+        </p>
+        <div className="font-mono text-xs tracking-[0.2em] text-neutral-400 flex items-center gap-3">
+          <span>SCROLL</span>
+          <motion.span animate={{ y: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.6 }}>↓</motion.span>
+        </div>
+      </section>
 
-        {/* Capabilities */}
-        <section className="py-12 border-t border-border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {CAPABILITIES.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="bg-card border border-border rounded-md p-6">
-                <Icon className="w-5 h-5 text-primary mb-4" />
-                <h3 className="font-display text-sm mb-2">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+      {/* Journey — 6 sticky beats */}
+      <div ref={journeyRef} style={{ height: `${STEPS.length * 100}vh` }} className="relative">
+        <div className="sticky top-0 h-screen flex flex-col">
+          {/* step rail */}
+          <div className="absolute top-20 left-6 md:left-1/2 md:-translate-x-[420px] flex md:flex-col gap-2 z-10">
+            {STEPS.map((s, i) => (
+              <div key={s.n} className="flex items-center gap-2">
+                <span className={`font-mono text-[10px] tracking-widest ${i === step ? 'text-neutral-900' : 'text-neutral-300'}`}>{s.n}</span>
+                <span className={`block h-px transition-all duration-300 ${i === step ? 'w-6 bg-neutral-900' : 'w-3 bg-neutral-300'}`} />
               </div>
             ))}
           </div>
-        </section>
 
-        {/* Pipeline */}
-        <section className="py-12 border-t border-border">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-6">
-            How a flow is processed
-          </p>
-          <div className="flex flex-col md:flex-row md:items-stretch gap-2">
-            {PIPELINE.map(({ icon: Icon, label, sub }, i) => (
-              <div key={label} className="flex items-center gap-2 flex-1">
-                <div className="flex-1 bg-card border border-border rounded-md p-4 h-full">
-                  <Icon className="w-4 h-4 text-primary mb-2" />
-                  <div className="text-sm font-medium">{label}</div>
-                  <div className="font-mono text-xs text-muted-foreground mt-0.5">{sub}</div>
-                </div>
-                {i < PIPELINE.length - 1 && (
-                  <ArrowRight className="w-4 h-4 text-muted-foreground/40 shrink-0 rotate-90 md:rotate-0" />
-                )}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-4">
-            The 2-class gate (Benign/Attack) is the reliable signal and drives the ban; the 8-class
-            head supplies the attack family label.
-          </p>
-        </section>
-
-        {/* Metrics */}
-        <section className="py-12 border-t border-border">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-            Measured performance
-          </p>
-          <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
-            8-class task, temporal split — trained on the earliest traffic and tested on the latest,
-            which mirrors deployment and reads lower than the random-split numbers most papers
-            report. That gap is the honest generalization result.
-          </p>
-          <div className="bg-card border border-border rounded-md overflow-hidden mb-8">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground">Model</th>
-                  <th className="px-5 py-3 text-right text-xs font-medium text-muted-foreground">Macro F1</th>
-                  <th className="px-5 py-3 text-right text-xs font-medium text-muted-foreground">Weighted F1</th>
-                  <th className="px-5 py-3 text-right text-xs font-medium text-muted-foreground">Accuracy</th>
-                </tr>
-              </thead>
-              <tbody>
-                {MODELS.map((m, i) => (
-                  <tr key={m.id} className={i < MODELS.length - 1 ? 'border-b border-border' : ''}>
-                    <td className="px-5 py-3 text-sm text-foreground/80">{m.name}</td>
-                    <td className="px-5 py-3 text-right font-mono text-xs text-primary">{m.metrics.testMacroF1.toFixed(3)}</td>
-                    <td className="px-5 py-3 text-right font-mono text-xs text-muted-foreground">{m.metrics.testWeightedF1.toFixed(3)}</td>
-                    <td className="px-5 py-3 text-right font-mono text-xs text-muted-foreground">{m.metrics.testAccuracy.toFixed(3)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* stage */}
+          <div className="flex-1 flex items-center justify-center px-6 pt-10">
+            <div className="w-full max-w-3xl">
+              <Stage step={step} />
+            </div>
           </div>
 
-          {/* Per-class — the honest scope story */}
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-            Per-class F1 (MLP) — what flow features can and can't catch
-          </p>
-          <div className="space-y-2 max-w-2xl">
-            {perClass.map(([cls, f1]) => (
-              <div key={cls} className="flex items-center gap-3">
-                <span className="text-xs text-foreground/70 w-24 shrink-0">{cls}</span>
-                <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${f1 * 100}%`, backgroundColor: ATTACK_COLORS[cls] ?? '#6B6E7A', opacity: 0.8 }}
-                  />
-                </div>
-                <span className="font-mono text-xs text-muted-foreground w-10 text-right">{f1.toFixed(2)}</span>
-              </div>
-            ))}
+          {/* caption */}
+          <div className="pb-20 px-6">
+            <div className="max-w-3xl mx-auto min-h-[120px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <p className="font-mono text-xs tracking-[0.25em] text-neutral-400 mb-3">
+                    {active.n} / {active.title.toUpperCase()}
+                  </p>
+                  <p className="text-2xl md:text-3xl leading-snug max-w-2xl">{active.caption}</p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-4 max-w-2xl">
-            Mirai and DDoS are highly separable from flow statistics; Web and BruteForce are not —
-            their signal lives in application-layer payloads the model never sees. The live demo
-            exercises the well-separated families: {DEMO_CLASSES.join(', ')}.
-          </p>
-        </section>
-      </main>
+        </div>
+      </div>
+
+      {/* Metrics — minimal, real numbers */}
+      <section className="max-w-5xl mx-auto px-6 py-28 border-t border-neutral-200">
+        <p className="font-mono text-xs tracking-[0.25em] text-neutral-500 mb-3">MEASURED · 8-CLASS · TEMPORAL SPLIT</p>
+        <p className="text-neutral-600 max-w-xl mb-10 leading-relaxed">
+          Trained on the earliest traffic, tested on the latest — the deployment-realistic split, which reads
+          lower than the random-split numbers most papers report. That gap is the honest result.
+        </p>
+        <div className="border-t border-neutral-900">
+          {MODELS.map((m) => (
+            <div key={m.id} className="flex items-baseline justify-between py-4 border-b border-neutral-200">
+              <span className="text-sm">{m.name}</span>
+              <span className="font-mono text-sm tabular-nums">
+                {m.metrics.testMacroF1.toFixed(3)}
+                <span className="text-neutral-400 text-xs ml-2">macro F1</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-8">
-        <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
-            Bachelor thesis demonstration · CIC-IoT-2023 · PyTorch · scikit-learn · FastAPI · React
-          </p>
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-primary" />
-            <span className="font-display text-xs tracking-wide text-muted-foreground">Neural IDS</span>
-          </div>
+      <footer className="border-t border-neutral-200">
+        <div className="max-w-5xl mx-auto px-6 py-10 flex items-center justify-between">
+          <span className="font-mono text-[10px] tracking-[0.2em] text-neutral-400">PYTORCH · SCIKIT-LEARN · FASTAPI · NFTABLES</span>
+          <span className="font-mono text-[10px] tracking-[0.2em] text-neutral-500">NEURAL·IDS</span>
         </div>
       </footer>
     </div>
