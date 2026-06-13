@@ -1,4 +1,4 @@
-import { Brain, TreeDeciduous, Cpu, type LucideIcon } from 'lucide-react';
+import { Brain, TreeDeciduous, type LucideIcon } from 'lucide-react';
 
 export interface ClassifierModel {
   id: string;
@@ -54,15 +54,6 @@ export const MODELS: ClassifierModel[] = [
     params: 'n_estimators=200, depth=20',
     color: '#3aa17e',
     metrics: { testAccuracy: 0.75, testWeightedF1: 0.771, testMacroF1: 0.584, valWeightedF1: 0.808, valMacroF1: 0.659 },
-  },
-  {
-    id: 'xgb',
-    name: 'XGBoost',
-    icon: Cpu,
-    description: 'Gradient-boosted trees (hist method) baseline on the same temporal split and feature set.',
-    params: 'n=300, depth=8, eta=0.1',
-    color: '#e07a5f',
-    metrics: { testAccuracy: 0.745, testWeightedF1: 0.771, testMacroF1: 0.576, valWeightedF1: 0.807, valMacroF1: 0.651 },
   },
 ];
 
