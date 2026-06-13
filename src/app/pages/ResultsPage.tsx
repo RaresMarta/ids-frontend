@@ -48,6 +48,13 @@ export default function ResultsPage() {
     .map(([label, count]) => ({ label, count: count as number, color: ATTACK_COLORS[label] ?? '#6B6E7A' }))
     .sort((a, b) => b.count - a.count);
 
+  // SHAP per-feature explanation (present only when the backend explainer ran).
+  // Signed contribution: positive pushes toward the predicted class, negative away.
+  const topFeatures: { feature: string; contribution: number }[] = (result.top_features ?? [])
+    .slice()
+    .sort((a: { contribution: number }, b: { contribution: number }) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  const maxContribution = Math.max(...topFeatures.map((f) => Math.abs(f.contribution)), 1e-9);
+
   const details: [string, string][] = [
     ['Model', (result.model_type ?? '—').toUpperCase()],
     ['Mode', result.mode === '2' ? 'Binary' : '8-Class'],
@@ -166,6 +173,51 @@ export default function ResultsPage() {
                 ))}
               </div>
             </div>
+
+            {/* Top contributing features — SHAP attribution for the dominant verdict */}
+            {topFeatures.length > 0 && (
+              <div className="bg-card border border-border rounded-md p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Top contributing features
+                  </p>
+                  <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#D97941' }} />
+                      toward {result.top_label}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#5B9BD5' }} />
+                      against
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {topFeatures.map((f) => (
+                    <div key={f.feature} className="flex items-center gap-3">
+                      <span className="font-mono text-xs text-foreground/70 w-48 truncate shrink-0">
+                        {f.feature}
+                      </span>
+                      <div className="flex-1 h-1.5 bg-border rounded-sm overflow-hidden">
+                        <div
+                          className="h-full rounded-sm transition-all duration-700"
+                          style={{
+                            width: `${(Math.abs(f.contribution) / maxContribution) * 100}%`,
+                            backgroundColor: f.contribution >= 0 ? '#D97941' : '#5B9BD5',
+                          }}
+                        />
+                      </div>
+                      <span className="font-mono text-[11px] text-muted-foreground w-14 text-right shrink-0">
+                        {f.contribution >= 0 ? '+' : ''}{f.contribution.toFixed(3)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground/70 mt-4">
+                  SHAP attribution for the most representative flow in this capture.
+                </p>
+              </div>
+            )}
 
             {/* Flow breakdown — real per-class counts from the upload */}
             {breakdown.length > 1 && (
