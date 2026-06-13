@@ -26,7 +26,7 @@ export default function StatCards({ stats }: { stats: DetectorStats | null }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card label="Flows analysed" value={stats ? String(stats.flows_total) : '—'} />
         <Card
           label="Malicious"
@@ -34,11 +34,6 @@ export default function StatCards({ stats }: { stats: DetectorStats | null }) {
           accent={stats && stats.malicious > 0 ? '#DC4C4C' : undefined}
         />
         <Card label="Packets dropped" value={stats ? String(stats.dropped) : '—'} />
-        <Card
-          label="Banned IPs"
-          value={stats ? String(stats.banned_count) : '—'}
-          accent={stats && stats.banned_count > 0 ? '#DC4C4C' : undefined}
-        />
         <Card label="Detector uptime" value={stats ? fmtUptime(stats.uptime_s) : '—'} />
       </div>
 

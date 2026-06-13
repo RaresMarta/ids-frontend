@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   toMs,
   type ActiveAttacker,
-  type BannedEntry,
   type DetectorHealth,
   type DetectorStats,
   type FeedItem,
@@ -23,7 +22,7 @@ export type ConnectionState = 'connecting' | 'open' | 'reconnecting';
 /**
  * Single source of truth for the live monitor page: subscribes to the
  * detector's SSE stream, keeps a rolling event buffer + per-second rate
- * series, and polls /api/stats, /api/blocklist and /api/health.
+ * series, and polls /api/stats and /api/health.
  */
 export function useEventStream(baseUrl: string) {
   const [events, setEvents] = useState<FeedItem[]>([]);
@@ -41,7 +40,6 @@ export function useEventStream(baseUrl: string) {
   const [markers, setMarkers] = useState<TimelineMarker[]>([]);
   const [activeAttackers, setActiveAttackers] = useState<ActiveAttacker[]>([]);
   const [stats, setStats] = useState<DetectorStats | null>(null);
-  const [blocklist, setBlocklist] = useState<BannedEntry[]>([]);
   const [health, setHealth] = useState<DetectorHealth | null>(null);
   const [connection, setConnection] = useState<ConnectionState>('connecting');
 
@@ -74,10 +72,6 @@ export function useEventStream(baseUrl: string) {
             ...prev.filter((a) => a.ip !== evt.attacker_ip),
             { ip: evt.attacker_ip, family: evt.family, since: toMs(evt.ts), confidence: evt.confidence },
           ]);
-          break;
-        case 'ban':
-          // The attacker stays "active" while banned; /api/blocklist moves it
-          // to the Blocked column. Only `recovered` clears it.
           break;
         case 'recovered':
           setMarkers((prev) =>
@@ -130,7 +124,7 @@ export function useEventStream(baseUrl: string) {
     return () => window.clearInterval(id);
   }, []);
 
-  // Poll stats / blocklist / health.
+  // Poll stats / health.
   useEffect(() => {
     let disposed = false;
 
@@ -141,14 +135,12 @@ export function useEventStream(baseUrl: string) {
     };
 
     const poll = async () => {
-      const [s, b, h] = await Promise.allSettled([
+      const [s, h] = await Promise.allSettled([
         get('/api/stats'),
-        get('/api/blocklist'),
         get('/api/health'),
       ]);
       if (disposed) return;
       if (s.status === 'fulfilled') setStats(s.value as DetectorStats);
-      if (b.status === 'fulfilled') setBlocklist(((b.value as { banned?: BannedEntry[] }).banned) ?? []);
       if (h.status === 'fulfilled') setHealth(h.value as DetectorHealth);
     };
 
@@ -180,7 +172,6 @@ export function useEventStream(baseUrl: string) {
     markers,
     activeAttackers,
     stats,
-    blocklist,
     health,
     connection,
     inject,

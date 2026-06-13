@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import AttackSignature, { type SignatureKind } from '../components/monitor/AttackSignature';
-import BlocklistPanel from '../components/monitor/BlocklistPanel';
 import DemoControls from '../components/monitor/DemoControls';
 import EventFeed from '../components/monitor/EventFeed';
 import StatCards from '../components/monitor/StatCards';
@@ -33,7 +32,6 @@ export default function LiveMonitorPage() {
     markers,
     activeAttackers,
     stats,
-    blocklist,
     health,
     connection,
     inject,
@@ -131,12 +129,7 @@ export default function LiveMonitorPage() {
               <VerdictPanel flow={verdictFlow} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-              <div className="lg:col-span-2">
-                <EventFeed items={events} />
-              </div>
-              <BlocklistPanel banned={blocklist} detected={activeAttackers} />
-            </div>
+            <EventFeed items={events} />
 
             {health?.mode === 'simulate' && <DemoControls baseUrl={DETECTOR_URL} inject={inject} />}
           </div>

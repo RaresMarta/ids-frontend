@@ -24,21 +24,13 @@ export interface AlertEvent {
   confidence: number;
 }
 
-export interface BanEvent {
-  type: 'ban';
-  ts: number;
-  attacker_ip: string;
-  family: string;
-  ttl_s: number;
-}
-
 export interface RecoveredEvent {
   type: 'recovered';
   ts: number;
   attacker_ip: string;
 }
 
-export type StreamEvent = FlowEvent | AlertEvent | BanEvent | RecoveredEvent;
+export type StreamEvent = FlowEvent | AlertEvent | RecoveredEvent;
 
 /** Stream event wrapped with a client-side sequence number for stable list keys. */
 export interface FeedItem {
@@ -46,20 +38,11 @@ export interface FeedItem {
   evt: StreamEvent;
 }
 
-export interface BannedEntry {
-  ip: string;
-  family: string;
-  expires_at: number;
-  banned_at: number;
-  hit_count: number;
-}
-
 export interface DetectorStats {
   flows_total: number;
   malicious: number;
   by_family: Record<string, number>;
   dropped: number;
-  banned_count: number;
   uptime_s: number;
 }
 
@@ -67,7 +50,6 @@ export interface DetectorHealth {
   status: string;
   mode: 'live' | 'replay' | 'simulate';
   model: string;
-  enforcer: string;
 }
 
 /** One-second rate bucket for the timeline (t in ms epoch). */
