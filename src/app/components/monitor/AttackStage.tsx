@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ATTACK_COLORS } from '../../data/models';
-import type { ActiveAttacker } from './types';
+import type { ActiveAttacker, ShapFeature } from './types';
 
 export type SignatureKind = 'DDoS' | 'DoS' | 'Mirai' | 'Recon' | 'generic';
 
@@ -10,8 +10,13 @@ const CAPTIONS: Record<SignatureKind, string> = {
   DoS: 'Sustained flood from a single source',
   Recon: 'Sequential port sweep (time × port)',
   Mirai: 'Botnet fan-in — many compromised sources, one target',
-  generic: 'Anomalous traffic blocked — gate verdict reliable, family uncertain',
+  generic: 'Anomalous traffic detected — gate verdict reliable, family uncertain',
 };
+
+// SHAP direction → colour. Red stays reserved for the gate verdict / breach
+// shading; the clay accent carries "pushes toward attack" here.
+const DIR_ATTACK = 'var(--primary)';
+const DIR_BENIGN = 'var(--info)';
 
 const VB = '0 0 400 220';
 
@@ -39,11 +44,11 @@ function DDoSVisual({ intensity }: { intensity: number }) {
         width={6}
         height={180}
         rx={3}
-        fill="#DC4C4C"
+        fill="var(--threat)"
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 1.2, repeat: Infinity }}
       />
-      <text x={356} y={114} fill="#6B6E7A" fontSize={10} fontFamily="JetBrains Mono, monospace">
+      <text x={356} y={114} fill="var(--muted-foreground)" fontSize={10} fontFamily="JetBrains Mono, monospace">
         dst
       </text>
       {dots.map((d, i) => (
@@ -79,7 +84,7 @@ function DoSVisual({ intensity }: { intensity: number }) {
         animate={{ opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 0.8, repeat: Infinity }}
       />
-      <text x={24} y={134} fill="#6B6E7A" fontSize={10} fontFamily="JetBrains Mono, monospace">
+      <text x={24} y={134} fill="var(--muted-foreground)" fontSize={10} fontFamily="JetBrains Mono, monospace">
         src
       </text>
       <motion.rect
@@ -88,11 +93,11 @@ function DoSVisual({ intensity }: { intensity: number }) {
         width={6}
         height={100}
         rx={3}
-        fill="#DC4C4C"
+        fill="var(--threat)"
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 0.8, repeat: Infinity }}
       />
-      <text x={356} y={114} fill="#6B6E7A" fontSize={10} fontFamily="JetBrains Mono, monospace">
+      <text x={356} y={114} fill="var(--muted-foreground)" fontSize={10} fontFamily="JetBrains Mono, monospace">
         dst
       </text>
       {Array.from({ length: 8 }, (_, i) => (
@@ -149,13 +154,13 @@ function ReconVisual() {
           />
         );
       })}
-      <text x={x0 + (cols * cell) / 2 - 20} y={y0 + rows * cell + 18} fill="#6B6E7A" fontSize={10} fontFamily="JetBrains Mono, monospace">
+      <text x={x0 + (cols * cell) / 2 - 20} y={y0 + rows * cell + 18} fill="var(--muted-foreground)" fontSize={10} fontFamily="JetBrains Mono, monospace">
         time →
       </text>
       <text
         x={x0 - 14}
         y={y0 + (rows * cell) / 2 + 14}
-        fill="#6B6E7A"
+        fill="var(--muted-foreground)"
         fontSize={10}
         fontFamily="JetBrains Mono, monospace"
         transform={`rotate(-90 ${x0 - 14} ${y0 + (rows * cell) / 2 + 14})`}
@@ -205,11 +210,11 @@ function MiraiVisual({ intensity }: { intensity: number }) {
         cx={tx}
         cy={ty}
         r={11}
-        fill="#DC4C4C"
+        fill="var(--threat)"
         animate={{ r: [11, 14, 11], opacity: [0.7, 1, 0.7] }}
         transition={{ duration: 1.1, repeat: Infinity }}
       />
-      <text x={tx + 18} y={ty + 4} fill="#6B6E7A" fontSize={10} fontFamily="JetBrains Mono, monospace">
+      <text x={tx + 18} y={ty + 4} fill="var(--muted-foreground)" fontSize={10} fontFamily="JetBrains Mono, monospace">
         target
       </text>
     </svg>
@@ -225,7 +230,7 @@ function GenericPulse() {
           cx={200}
           cy={110}
           fill="none"
-          stroke="#DC4C4C"
+          stroke="var(--threat)"
           strokeWidth={1.5}
           initial={{ r: 12, opacity: 0 }}
           animate={{ r: [12, 92], opacity: [0.6, 0] }}
@@ -236,7 +241,7 @@ function GenericPulse() {
         cx={200}
         cy={110}
         r={8}
-        fill="#DC4C4C"
+        fill="var(--threat)"
         animate={{ opacity: [0.7, 1, 0.7] }}
         transition={{ duration: 1.4, repeat: Infinity }}
       />
@@ -247,21 +252,122 @@ function GenericPulse() {
 function CalmState() {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-      <div className="relative">
-        <motion.span
-          className="block w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: '#4ADE80' }}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        />
-      </div>
+      <motion.span
+        className="block w-2.5 h-2.5 rounded-full"
+        style={{ backgroundColor: 'var(--safe)' }}
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
       <p className="text-xs text-muted-foreground">No active threat</p>
       <p className="font-mono text-[10px] text-muted-foreground/60">traffic within normal envelope</p>
     </div>
   );
 }
 
-export default function AttackSignature({
+function Scene({ signature, intensity }: { signature: SignatureKind | null; intensity: number }) {
+  switch (signature) {
+    case 'DDoS':
+      return <DDoSVisual intensity={intensity} />;
+    case 'DoS':
+      return <DoSVisual intensity={intensity} />;
+    case 'Recon':
+      return <ReconVisual />;
+    case 'Mirai':
+      return <MiraiVisual intensity={intensity} />;
+    case 'generic':
+      return <GenericPulse />;
+    default:
+      return <CalmState />;
+  }
+}
+
+/** Real signed SHAP for the gate's Attack verdict (per attack episode). */
+function WhyPanel({ attacker }: { attacker: ActiveAttacker | null }) {
+  const feats: ShapFeature[] = (attacker?.explanation ?? [])
+    .slice()
+    .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+    .slice(0, 6);
+  const max = Math.max(...feats.map((f) => Math.abs(f.contribution)), 1e-9);
+
+  const header = (
+    <div className="flex items-center justify-between mb-3">
+      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+        Why this source was flagged
+      </p>
+      <span className="font-mono text-[9px] text-muted-foreground/60">SHAP · gate</span>
+    </div>
+  );
+
+  if (!attacker) {
+    return (
+      <div className="flex flex-col h-full">
+        {header}
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-xs text-muted-foreground/70">Nothing to explain — no active threat</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (feats.length === 0) {
+    return (
+      <div className="flex flex-col h-full">
+        {header}
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-xs text-muted-foreground/70">Attribution unavailable for this episode</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {header}
+      <div className="flex items-center gap-4 mb-3">
+        <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: DIR_ATTACK }} />
+          toward attack
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: DIR_BENIGN }} />
+          toward benign
+        </span>
+      </div>
+      <div className="space-y-2">
+        {feats.map((f) => {
+          const dir = f.direction ?? (f.contribution >= 0 ? 'attack' : 'benign');
+          const color = dir === 'benign' ? DIR_BENIGN : DIR_ATTACK;
+          return (
+            <div key={f.feature} className="flex items-center gap-2">
+              <span className="font-mono text-[11px] text-foreground/70 w-36 truncate shrink-0">
+                {f.feature}
+              </span>
+              <div className="flex-1 h-1.5 bg-muted rounded-sm overflow-hidden">
+                <motion.div
+                  className="h-full rounded-sm"
+                  style={{ backgroundColor: color }}
+                  animate={{ width: `${(Math.abs(f.contribution) / max) * 100}%` }}
+                  transition={{ duration: 0.8, ease: 'easeInOut' }}
+                />
+              </div>
+              <span className="font-mono text-[10px] text-muted-foreground w-14 text-right shrink-0">
+                {f.contribution >= 0 ? '+' : ''}
+                {f.contribution.toFixed(3)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Persistent full-width "stage" for the live monitor. The card is always
+ * mounted; the scene cross-fades calm ⇄ attack (and family ⇄ family) instead
+ * of tearing down, and the real per-episode SHAP rides alongside the visual.
+ */
+export default function AttackStage({
   signature,
   attacker,
   intensity,
@@ -270,13 +376,14 @@ export default function AttackSignature({
   attacker: ActiveAttacker | null;
   intensity: number;
 }) {
-  const familyColor = attacker ? (ATTACK_COLORS[attacker.family] ?? '#6B6E7A') : '#6B6E7A';
+  const familyColor = attacker ? (ATTACK_COLORS[attacker.family] ?? 'var(--muted-foreground)') : 'var(--muted-foreground)';
+  const sceneKey = signature ?? 'calm';
 
   return (
-    <div className="bg-card border border-border rounded-md p-5 flex flex-col">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-card border border-border rounded-md p-5">
+      <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-          Attack signature
+          Attack stage
         </p>
         {attacker && (
           <div className="flex items-center gap-2">
@@ -289,39 +396,33 @@ export default function AttackSignature({
         )}
       </div>
 
-      <div className="relative flex-1 min-h-[220px]">
-        <AnimatePresence mode="wait">
-          {signature === null ? (
-            <motion.div
-              key="calm"
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.5 } }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-            >
-              <CalmState />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={signature}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.4 } }}
-              exit={{ opacity: 0, transition: { duration: 1 } }}
-            >
-              {signature === 'DDoS' && <DDoSVisual intensity={intensity} />}
-              {signature === 'DoS' && <DoSVisual intensity={intensity} />}
-              {signature === 'Recon' && <ReconVisual />}
-              {signature === 'Mirai' && <MiraiVisual intensity={intensity} />}
-              {signature === 'generic' && <GenericPulse />}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-stretch">
+        {/* Persistent scene — cross-fades rather than unmounting. */}
+        <div className="flex flex-col">
+          <div className="relative flex-1 min-h-[220px]">
+            <AnimatePresence initial={false}>
+              <motion.div
+                key={sceneKey}
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+              >
+                <Scene signature={signature} intensity={intensity} />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          <p className="text-[11px] text-muted-foreground/70 mt-2 min-h-[16px]">
+            {signature ? CAPTIONS[signature] : ''}
+          </p>
+        </div>
 
-      <p className="text-[11px] text-muted-foreground/70 mt-2 min-h-[16px]">
-        {signature ? CAPTIONS[signature] : ''}
-      </p>
+        {/* Real SHAP attribution for the active source. */}
+        <div className="border-t lg:border-t-0 lg:border-l border-border pt-4 lg:pt-0 lg:pl-5">
+          <WhyPanel attacker={attacker} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -95,24 +95,24 @@ export default function ComparisonPage() {
               <div className="bg-card border border-border rounded-md p-5">
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="class"
-                      tick={{ fill: '#6B6E7A', fontSize: 11 }}
-                      axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                      tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+                      axisLine={{ stroke: 'var(--border)' }}
                       tickLine={false}
                     />
                     <YAxis
                       domain={[0, 1]}
-                      tick={{ fill: '#6B6E7A', fontSize: 11 }}
+                      tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <Tooltip
-                      cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                      cursor={{ fill: 'var(--border)' }}
                       contentStyle={{
                         backgroundColor: '#16181D',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        border: '1px solid var(--border)',
                         borderRadius: 6,
                         fontSize: 12,
                       }}

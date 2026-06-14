@@ -37,15 +37,15 @@ export default function ResultsPage() {
 
   const isBenign = result.top_label?.toLowerCase() === 'benign';
   const confidence = Math.round((result.confidence ?? 0) * 1000) / 10;
-  const topColor = ATTACK_COLORS[result.top_label] ?? '#6B6E7A';
+  const topColor = ATTACK_COLORS[result.top_label] ?? 'var(--muted-foreground)';
   const circumference = 2 * Math.PI * 72;
 
   const probabilities = Object.entries(result.probabilities ?? {})
-    .map(([label, p]) => ({ label, value: Math.round((p as number) * 1000) / 10, color: ATTACK_COLORS[label] ?? '#6B6E7A' }))
+    .map(([label, p]) => ({ label, value: Math.round((p as number) * 1000) / 10, color: ATTACK_COLORS[label] ?? 'var(--muted-foreground)' }))
     .sort((a, b) => b.value - a.value);
 
   const breakdown = Object.entries(result.breakdown ?? {})
-    .map(([label, count]) => ({ label, count: count as number, color: ATTACK_COLORS[label] ?? '#6B6E7A' }))
+    .map(([label, count]) => ({ label, count: count as number, color: ATTACK_COLORS[label] ?? 'var(--muted-foreground)' }))
     .sort((a, b) => b.count - a.count);
 
   // SHAP per-feature explanation (present only when the backend explainer ran).
@@ -97,10 +97,10 @@ export default function ResultsPage() {
             )}
 
             {isBenign && (
-              <div className="flex items-center gap-3 px-5 py-3.5 bg-[#4ADE80]/8 border border-[#4ADE80]/20 rounded-md">
-                <CheckCircle className="w-4 h-4 text-[#4ADE80] shrink-0" />
+              <div className="flex items-center gap-3 px-5 py-3.5 bg-safe/8 border border-safe/20 rounded-md">
+                <CheckCircle className="w-4 h-4 text-safe shrink-0" />
                 <div>
-                  <span className="text-sm font-medium text-[#4ADE80]">Traffic classified as benign</span>
+                  <span className="text-sm font-medium text-safe">Traffic classified as benign</span>
                   <span className="text-xs text-muted-foreground ml-3">No anomalous patterns detected in the sample.</span>
                 </div>
               </div>
@@ -115,7 +115,7 @@ export default function ResultsPage() {
                 </p>
                 <div className="relative w-40 h-40">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
-                    <circle cx="80" cy="80" r="72" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+                    <circle cx="80" cy="80" r="72" fill="none" stroke="var(--border)" strokeWidth="8" />
                     <circle
                       cx="80"
                       cy="80"
@@ -183,11 +183,11 @@ export default function ResultsPage() {
                   </p>
                   <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#D97941' }} />
+                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: 'var(--primary)' }} />
                       toward {result.top_label}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#5B9BD5' }} />
+                      <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: 'var(--info)' }} />
                       against
                     </span>
                   </div>
@@ -203,7 +203,7 @@ export default function ResultsPage() {
                           className="h-full rounded-sm transition-all duration-700"
                           style={{
                             width: `${(Math.abs(f.contribution) / maxContribution) * 100}%`,
-                            backgroundColor: f.contribution >= 0 ? '#D97941' : '#5B9BD5',
+                            backgroundColor: f.contribution >= 0 ? 'var(--primary)' : 'var(--info)',
                           }}
                         />
                       </div>

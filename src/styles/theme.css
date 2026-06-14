@@ -1,93 +1,124 @@
 @custom-variant dark (&:is(.dark *));
 
+/* ───────────────────────────────────────────────────────────────────────────
+   LIGHT theme is the default (:root). DARK is the opt-in alternate (.dark),
+   toggled by ThemeProvider via a `dark` class on <html>.
+   Warm-neutral, Claude-adjacent: cream canvas, warm near-black ink, one
+   rationed clay accent. Semantic colours (threat/safe/warn/info) are tuned
+   per-theme so they stay legible on both surfaces — red reserved for genuine
+   threat.
+   ──────────────────────────────────────────────────────────────────────── */
 :root {
   --font-size: 16px;
-  --background: #0B0C10;
-  --foreground: #F0EDE8;
-  --card: #13161D;
-  --card-foreground: #F0EDE8;
-  --popover: #13161D;
-  --popover-foreground: #F0EDE8;
-  --primary: #D97941;
-  --primary-foreground: #0B0C10;
-  --secondary: #1C1F2A;
-  --secondary-foreground: #9A9DAA;
-  --muted: #181B24;
-  --muted-foreground: #6B6E7A;
-  --accent: #D97941;
-  --accent-foreground: #0B0C10;
-  --destructive: #DC4C4C;
-  --destructive-foreground: #F0EDE8;
-  --border: rgba(255, 255, 255, 0.07);
-  --input: #181B24;
-  --input-background: #181B24;
-  --switch-background: #1C1F2A;
+
+  --background: #faf9f5;
+  --foreground: #262624;
+  --card: #ffffff;
+  --card-foreground: #262624;
+  --popover: #ffffff;
+  --popover-foreground: #262624;
+  --primary: #c15f3c;
+  --primary-foreground: #ffffff;
+  --secondary: #f0eee6;
+  --secondary-foreground: #3a3a37;
+  --muted: #f0eee6;
+  --muted-foreground: #6f6e69;
+  --accent: #c15f3c;
+  --accent-foreground: #ffffff;
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+  --border: rgba(20, 19, 17, 0.1);
+  --input: #ffffff;
+  --input-background: #ffffff;
+  --switch-background: #d8d5cc;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #D97941;
-  --chart-1: #D97941;
-  --chart-2: #4ADE80;
-  --chart-3: #818CF8;
-  --chart-4: #DC4C4C;
-  --chart-5: #FBBF24;
-  --radius: 0.375rem;
-  --sidebar: #0D0F14;
-  --sidebar-foreground: #F0EDE8;
-  --sidebar-primary: #D97941;
-  --sidebar-primary-foreground: #0B0C10;
-  --sidebar-accent: rgba(217, 121, 65, 0.08);
-  --sidebar-accent-foreground: #D97941;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #D97941;
+  --ring: #c15f3c;
 
-  /* Attack family colors */
-  --attack-ddos: #DC4C4C;
-  --attack-dos: #E8743A;
-  --attack-mirai: #9B7FD4;
-  --attack-recon: #5B9BD5;
-  --attack-spoofing: #C07AB8;
-  --attack-web: #D4875A;
-  --attack-bruteforce: #C9A84C;
-  --attack-benign: #4ADE80;
+  /* Semantic status — tuned for the light canvas. */
+  --threat: #c0392b;
+  --safe: #2e9e5b;
+  --warn: #c2912f;
+  --info: #3e7cb1;
+
+  --chart-1: #c15f3c;
+  --chart-2: #2e9e5b;
+  --chart-3: #5b6cc9;
+  --chart-4: #c0392b;
+  --chart-5: #c2912f;
+  --radius: 0.375rem;
+
+  --sidebar: #f5f3ec;
+  --sidebar-foreground: #262624;
+  --sidebar-primary: #c15f3c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(193, 95, 60, 0.1);
+  --sidebar-accent-foreground: #c15f3c;
+  --sidebar-border: rgba(20, 19, 17, 0.08);
+  --sidebar-ring: #c15f3c;
+
+  /* Attack family colours — mid-tones that hold up on both themes. */
+  --attack-ddos: #c0392b;
+  --attack-dos: #d9743a;
+  --attack-mirai: #7c5cc4;
+  --attack-recon: #3e7cb1;
+  --attack-spoofing: #b5487e;
+  --attack-web: #c27a45;
+  --attack-bruteforce: #b8923a;
+  --attack-benign: #2e9e5b;
 }
 
 .dark {
-  --background: #0B0C10;
-  --foreground: #F0EDE8;
-  --card: #13161D;
-  --card-foreground: #F0EDE8;
-  --popover: #13161D;
-  --popover-foreground: #F0EDE8;
-  --primary: #D97941;
-  --primary-foreground: #0B0C10;
-  --secondary: #1C1F2A;
-  --secondary-foreground: #9A9DAA;
-  --muted: #181B24;
-  --muted-foreground: #6B6E7A;
-  --accent: #D97941;
-  --accent-foreground: #0B0C10;
-  --destructive: #DC4C4C;
-  --destructive-foreground: #F0EDE8;
+  --background: #0b0c10;
+  --foreground: #f0ede8;
+  --card: #13161d;
+  --card-foreground: #f0ede8;
+  --popover: #13161d;
+  --popover-foreground: #f0ede8;
+  --primary: #d97941;
+  --primary-foreground: #0b0c10;
+  --secondary: #1c1f2a;
+  --secondary-foreground: #9a9daa;
+  --muted: #181b24;
+  --muted-foreground: #8b8e9a;
+  --accent: #d97941;
+  --accent-foreground: #0b0c10;
+  --destructive: #dc4c4c;
+  --destructive-foreground: #f0ede8;
   --border: rgba(255, 255, 255, 0.07);
-  --input: #181B24;
-  --input-background: #181B24;
-  --switch-background: #1C1F2A;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --ring: #D97941;
-  --chart-1: #D97941;
-  --chart-2: #4ADE80;
-  --chart-3: #818CF8;
-  --chart-4: #DC4C4C;
-  --chart-5: #FBBF24;
-  --sidebar: #0D0F14;
-  --sidebar-foreground: #F0EDE8;
-  --sidebar-primary: #D97941;
-  --sidebar-primary-foreground: #0B0C10;
+  --input: #181b24;
+  --input-background: #181b24;
+  --switch-background: #1c1f2a;
+  --ring: #d97941;
+
+  --threat: #e5616a;
+  --safe: #4ade80;
+  --warn: #fbbf24;
+  --info: #5b9bd5;
+
+  --chart-1: #d97941;
+  --chart-2: #4ade80;
+  --chart-3: #818cf8;
+  --chart-4: #dc4c4c;
+  --chart-5: #fbbf24;
+
+  --sidebar: #0d0f14;
+  --sidebar-foreground: #f0ede8;
+  --sidebar-primary: #d97941;
+  --sidebar-primary-foreground: #0b0c10;
   --sidebar-accent: rgba(217, 121, 65, 0.08);
-  --sidebar-accent-foreground: #D97941;
+  --sidebar-accent-foreground: #d97941;
   --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #D97941;
+  --sidebar-ring: #d97941;
+
+  --attack-ddos: #dc4c4c;
+  --attack-dos: #e8743a;
+  --attack-mirai: #9b7fd4;
+  --attack-recon: #5b9bd5;
+  --attack-spoofing: #c95d8f;
+  --attack-web: #d4875a;
+  --attack-bruteforce: #c9a84c;
+  --attack-benign: #4ade80;
 }
 
 @theme inline {
@@ -112,6 +143,12 @@
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
+
+  --color-threat: var(--threat);
+  --color-safe: var(--safe);
+  --color-warn: var(--warn);
+  --color-info: var(--info);
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);

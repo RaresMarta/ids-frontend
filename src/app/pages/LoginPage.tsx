@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import NetworkBackground from '../components/NetworkBackground';
-import { Shield } from 'lucide-react';
+import { Shield, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginPage() {
@@ -42,24 +42,18 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             Machine learning–based traffic classification for research and academic purposes. Developed as a bachelor thesis demonstration system.
           </p>
-          <div className="mt-12 space-y-3">
-            {[
-              ['MLP Neural Network', '98.7% accuracy'],
-              ['Random Forest', '99.2% accuracy'],
-              ['XGBoost', '97.4% accuracy'],
-            ].map(([model, acc]) => (
-              <div key={model} className="flex items-center justify-between py-2.5 border-b border-border">
-                <span className="text-xs text-foreground/60">{model}</span>
-                <span className="font-mono text-xs text-primary">{acc}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
       {/* Right panel — form */}
       <div className="w-full lg:w-[440px] flex items-center justify-center p-8 bg-card border-l border-border">
         <div className="w-full max-w-sm">
+          <button
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6 lg:hidden">
               <Shield className="w-4 h-4 text-primary" />
@@ -110,7 +104,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-2"
+              className="w-full py-2.5 bg-foreground text-background rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity mt-2"
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>

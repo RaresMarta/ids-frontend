@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import NetworkBackground from '../components/NetworkBackground';
-import { Shield, CheckCircle2, XCircle } from 'lucide-react';
+import { Shield, CheckCircle2, XCircle, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function RegisterPage() {
@@ -23,11 +23,11 @@ export default function RegisterPage() {
     if (/[^a-zA-Z0-9]/.test(password)) score++;
 
     const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['#DC4C4C', '#E8743A', '#C9A84C', '#4ADE80'];
+    const colors = ['var(--threat)', '#E8743A', '#C9A84C', 'var(--safe)'];
     return {
       strength: (score / 4) * 100,
       label: labels[score - 1] || 'Weak',
-      color: colors[score - 1] || '#DC4C4C',
+      color: colors[score - 1] || 'var(--threat)',
     };
   };
 
@@ -66,17 +66,18 @@ export default function RegisterPage() {
           <p className="text-sm text-muted-foreground leading-relaxed">
             Create an account to begin analyzing network traffic with our machine learning classifiers.
           </p>
-          <div className="mt-12 p-4 bg-card border border-border rounded-md">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              This system is part of a bachelor thesis demonstration. Access is restricted to authorized research participants.
-            </p>
-          </div>
         </div>
       </div>
 
       {/* Right panel — form */}
       <div className="w-full lg:w-[440px] flex items-center justify-center p-8 bg-card border-l border-border overflow-y-auto">
         <div className="w-full max-w-sm py-4">
+          <button
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ChevronLeft className="w-4 h-4" /> Back
+          </button>
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6 lg:hidden">
               <Shield className="w-4 h-4 text-primary" />
@@ -117,7 +118,7 @@ export default function RegisterPage() {
                 {email && (
                   <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                     {emailValid ? (
-                      <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" />
+                      <CheckCircle2 className="w-4 h-4 text-safe" />
                     ) : (
                       <XCircle className="w-4 h-4 text-destructive" />
                     )}
@@ -167,7 +168,7 @@ export default function RegisterPage() {
                 {confirmPassword && (
                   <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                     {passwordsMatch ? (
-                      <CheckCircle2 className="w-4 h-4 text-[#4ADE80]" />
+                      <CheckCircle2 className="w-4 h-4 text-safe" />
                     ) : (
                       <XCircle className="w-4 h-4 text-destructive" />
                     )}
@@ -183,7 +184,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={!emailValid || !passwordsMatch || strength < 50 || !username || loading}
-              className="w-full py-2.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors mt-2"
+              className="w-full py-2.5 bg-foreground text-background rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity mt-2"
             >
               {loading ? 'Creating account…' : 'Create account'}
             </button>

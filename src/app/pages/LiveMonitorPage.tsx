@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
-import AttackSignature, { type SignatureKind } from '../components/monitor/AttackSignature';
+import AttackStage, { type SignatureKind } from '../components/monitor/AttackStage';
 import DemoControls from '../components/monitor/DemoControls';
 import EventFeed from '../components/monitor/EventFeed';
 import StatCards from '../components/monitor/StatCards';
@@ -12,15 +12,15 @@ import { FAMILY_CONFIDENCE_FLOOR, RICH_SIGNATURE_FAMILIES } from '../components/
 const DETECTOR_URL: string = import.meta.env.VITE_DETECTOR_URL ?? 'http://localhost:7870';
 
 const CONNECTION_LABEL: Record<ConnectionState, { label: string; color: string }> = {
-  connecting: { label: 'connecting', color: '#6B6E7A' },
-  open: { label: 'live', color: '#4ADE80' },
-  reconnecting: { label: 'reconnecting', color: '#FBBF24' },
+  connecting: { label: 'connecting', color: 'var(--muted-foreground)' },
+  open: { label: 'live', color: 'var(--safe)' },
+  reconnecting: { label: 'reconnecting', color: 'var(--warn)' },
 };
 
 const MODE_COLOR: Record<string, string> = {
-  live: '#4ADE80',
-  replay: '#5B9BD5',
-  simulate: '#FBBF24',
+  live: 'var(--safe)',
+  replay: 'var(--info)',
+  simulate: 'var(--warn)',
 };
 
 export default function LiveMonitorPage() {
@@ -81,8 +81,8 @@ export default function LiveMonitorPage() {
                 <span
                   className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs border"
                   style={{
-                    color: MODE_COLOR[health.mode] ?? '#6B6E7A',
-                    borderColor: `${MODE_COLOR[health.mode] ?? '#6B6E7A'}40`,
+                    color: MODE_COLOR[health.mode] ?? 'var(--muted-foreground)',
+                    borderColor: `${MODE_COLOR[health.mode] ?? 'var(--muted-foreground)'}40`,
                   }}
                 >
                   {health.mode}
@@ -103,7 +103,7 @@ export default function LiveMonitorPage() {
         <div
           className={`px-8 py-2 border-b shrink-0 text-xs transition-colors duration-500 ${
             underAttack
-              ? 'border-[#DC4C4C]/30 bg-[#DC4C4C]/10 text-[#DC4C4C]'
+              ? 'border-threat/30 bg-threat/10 text-threat'
               : 'border-border bg-card/40 text-muted-foreground'
           }`}
         >
@@ -120,16 +120,17 @@ export default function LiveMonitorPage() {
 
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto space-y-4">
+            {/* persistent full-width hero: attack scene + real per-episode SHAP */}
+            <AttackStage signature={signature} attacker={currentAttacker} intensity={intensity} />
+
             <StatCards stats={stats} />
 
             <TrafficTimeline rateSeries={rateSeries} markers={markers} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
-              <AttackSignature signature={signature} attacker={currentAttacker} intensity={intensity} />
               <VerdictPanel flow={verdictFlow} />
+              <EventFeed items={events} />
             </div>
-
-            <EventFeed items={events} />
 
             {health?.mode === 'simulate' && <DemoControls baseUrl={DETECTOR_URL} inject={inject} />}
           </div>

@@ -7,10 +7,12 @@ import AnalysisPage from "./pages/AnalysisPage";
 import ComparisonPage from "./pages/ComparisonPage";
 import ResultsPage from "./pages/ResultsPage";
 import LiveMonitorPage from "./pages/LiveMonitorPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export const router = createBrowserRouter([
+  // ── Public ────────────────────────────────────────────────────────────────
   {
-    // Public landing page.
+    // The landing page is the only public app surface.
     path: "/",
     Component: LandingPage,
   },
@@ -22,25 +24,17 @@ export const router = createBrowserRouter([
     path: "/register",
     Component: RegisterPage,
   },
+
+  // ── Authenticated only ──────────────────────────────────────────────────────
+  // Everything below requires a Supabase session; otherwise → /login.
   {
-    path: "/dashboard",
-    Component: DashboardPage,
-  },
-  {
-    path: "/analysis",
-    Component: AnalysisPage,
-  },
-  {
-    path: "/compare",
-    Component: ComparisonPage,
-  },
-  {
-    path: "/results",
-    Component: ResultsPage,
-  },
-  {
-    // Public showcase — the live operator console (no auth gate).
-    path: "/monitor",
-    Component: LiveMonitorPage,
+    Component: ProtectedRoute,
+    children: [
+      { path: "/dashboard", Component: DashboardPage },
+      { path: "/analysis", Component: AnalysisPage },
+      { path: "/compare", Component: ComparisonPage },
+      { path: "/results", Component: ResultsPage },
+      { path: "/monitor", Component: LiveMonitorPage },
+    ],
   },
 ]);

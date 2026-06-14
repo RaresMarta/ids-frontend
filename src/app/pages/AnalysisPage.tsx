@@ -32,7 +32,7 @@ export default function AnalysisPage() {
       form.append('file', file);
       form.append('model_type', modelId);
       form.append('mode', '8');
-      form.append('split', 'temporal');
+      form.append('split', 'random');
 
       const res = await fetch(`${API_URL}/api/classify`, { method: 'POST', body: form });
       const data = await res.json();
@@ -169,7 +169,7 @@ export default function AnalysisPage() {
                     onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
                     className="w-full h-1 rounded-full appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #D97941 0%, #D97941 ${confidenceThreshold}%, rgba(255,255,255,0.07) ${confidenceThreshold}%, rgba(255,255,255,0.07) 100%)`,
+                      background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${confidenceThreshold}%, var(--border) ${confidenceThreshold}%, var(--border) 100%)`,
                     }}
                   />
                   <div className="flex justify-between mt-1">

@@ -48,7 +48,7 @@ export default function DemoControls({
         <span className="font-mono text-[10px] text-muted-foreground/60">simulate mode · inject 30 flows</span>
       </span>
       {families.map((family) => {
-        const c = ATTACK_COLORS[family] ?? '#6B6E7A';
+        const c = ATTACK_COLORS[family] ?? 'var(--muted-foreground)';
         return (
           <button
             key={family}

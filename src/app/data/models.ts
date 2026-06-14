@@ -19,15 +19,17 @@ export interface ClassifierModel {
 // 8-class granularity of CIC-IoT-2023 (see labels.py in cic-iot2023-detection-system).
 export const ATTACK_CLASSES = ['Benign', 'DDoS', 'DoS', 'Mirai', 'Recon', 'Spoofing', 'Web', 'BruteForce'];
 
+// Mid-tone family palette that stays legible on both the light canvas and the
+// dark surface (matches the --attack-* tokens in theme.css).
 export const ATTACK_COLORS: Record<string, string> = {
-  Benign: '#4ADE80',
-  DDoS: '#DC4C4C',
-  DoS: '#E8743A',
-  Mirai: '#9B7FD4',
-  Recon: '#5B9BD5',
-  Spoofing: '#C95D8F',
-  Web: '#D4875A',
-  BruteForce: '#C9A84C',
+  Benign: '#2E9E5B',
+  DDoS: '#C0392B',
+  DoS: '#D9743A',
+  Mirai: '#7C5CC4',
+  Recon: '#3E7CB1',
+  Spoofing: '#B5487E',
+  Web: '#C27A45',
+  BruteForce: '#B8923A',
 };
 
 // Classes the live demo exercises. Web and BruteForce are deliberately excluded:

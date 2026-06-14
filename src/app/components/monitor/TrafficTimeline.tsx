@@ -51,7 +51,7 @@ function RateTooltip({ active, payload, label }: any) {
     <div className="bg-popover border border-border rounded-md px-3 py-2 text-xs space-y-0.5">
       <p className="font-mono text-muted-foreground">{fmtTime(label)}</p>
       <p className="text-foreground">{p.flows} flows/s</p>
-      {p.blocked > 0 && <p style={{ color: '#DC4C4C' }}>{p.blocked} blocked/s</p>}
+      {p.blocked > 0 && <p style={{ color: 'var(--threat)' }}>{p.blocked} flagged/s</p>}
     </div>
   );
 }
@@ -94,12 +94,12 @@ export default function TrafficTimeline({
         </p>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#D97941' }} />
+            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: 'var(--primary)' }} />
             flows/s
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#DC4C4C' }} />
-            blocked/s
+            <span className="w-2 h-2 rounded-sm" style={{ backgroundColor: 'var(--threat)' }} />
+            flagged/s
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-sm bg-foreground/10 border border-foreground/20" />
@@ -115,26 +115,26 @@ export default function TrafficTimeline({
             type="number"
             domain={[windowStart, now]}
             tickFormatter={fmtTime}
-            stroke="rgba(255,255,255,0.07)"
-            tick={{ fill: '#6B6E7A', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            stroke="var(--border)"
+            tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
             tickLine={false}
           />
           <YAxis
             allowDecimals={false}
             width={32}
-            stroke="rgba(255,255,255,0.07)"
-            tick={{ fill: '#6B6E7A', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            stroke="var(--border)"
+            tick={{ fill: 'var(--muted-foreground)', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
             tickLine={false}
           />
 
           {/* normal envelope */}
-          <ReferenceArea y1={0} y2={envelope} fill="#F0EDE8" fillOpacity={0.04} ifOverflow="extendDomain" />
+          <ReferenceArea y1={0} y2={envelope} fill="var(--foreground)" fillOpacity={0.04} ifOverflow="extendDomain" />
           <ReferenceLine
             y={envelope}
-            stroke="#6B6E7A"
+            stroke="var(--muted-foreground)"
             strokeDasharray="4 4"
             strokeOpacity={0.5}
-            label={{ value: 'normal', position: 'insideTopRight', fill: '#6B6E7A', fontSize: 10 }}
+            label={{ value: 'normal', position: 'insideTopRight', fill: 'var(--muted-foreground)', fontSize: 10 }}
           />
 
           {/* breach shading: alert → recovered (or now) */}
@@ -143,7 +143,7 @@ export default function TrafficTimeline({
               key={`${r.ip}-${r.from}`}
               x1={r.from}
               x2={r.to}
-              fill="#DC4C4C"
+              fill="var(--threat)"
               fillOpacity={r.open ? 0.08 : 0.05}
               ifOverflow="hidden"
             />
@@ -153,12 +153,12 @@ export default function TrafficTimeline({
             <ReferenceLine
               key={`${m.kind}-${m.ip}-${m.ts}`}
               x={m.ts}
-              stroke={m.kind === 'alert' ? '#DC4C4C' : '#4ADE80'}
+              stroke={m.kind === 'alert' ? 'var(--threat)' : 'var(--safe)'}
               strokeDasharray="3 3"
               label={{
                 value: m.kind === 'alert' ? (m.family ?? 'attack') : 'recovered',
                 position: 'insideTop',
-                fill: m.kind === 'alert' ? (ATTACK_COLORS[m.family ?? ''] ?? '#DC4C4C') : '#4ADE80',
+                fill: m.kind === 'alert' ? (ATTACK_COLORS[m.family ?? ''] ?? 'var(--threat)') : 'var(--safe)',
                 fontSize: 10,
               }}
             />
@@ -167,7 +167,7 @@ export default function TrafficTimeline({
           <Area
             type="monotone"
             dataKey="flows"
-            stroke="#D97941"
+            stroke="var(--primary)"
             strokeWidth={1.5}
             fill="rgba(217,121,65,0.14)"
             isAnimationActive={false}
@@ -175,7 +175,7 @@ export default function TrafficTimeline({
           <Area
             type="monotone"
             dataKey="blocked"
-            stroke="#DC4C4C"
+            stroke="var(--threat)"
             strokeWidth={1.5}
             fill="rgba(220,76,76,0.22)"
             isAnimationActive={false}

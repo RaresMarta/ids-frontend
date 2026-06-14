@@ -109,7 +109,7 @@ export default function DashboardPage() {
                     </thead>
                     <tbody>
                       {filteredHistory.map((entry, i) => {
-                        const c = ATTACK_COLORS[entry.result_label] ?? '#6B6E7A';
+                        const c = ATTACK_COLORS[entry.result_label] ?? 'var(--muted-foreground)';
                         return (
                           <tr
                             key={entry.id}

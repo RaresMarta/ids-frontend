@@ -70,7 +70,14 @@ export function useEventStream(baseUrl: string) {
           );
           setActiveAttackers((prev) => [
             ...prev.filter((a) => a.ip !== evt.attacker_ip),
-            { ip: evt.attacker_ip, family: evt.family, since: toMs(evt.ts), confidence: evt.confidence },
+            {
+              ip: evt.attacker_ip,
+              family: evt.family,
+              since: toMs(evt.ts),
+              confidence: evt.confidence,
+              // Real signed SHAP for the gate verdict, carried on the alert.
+              explanation: evt.top_features ?? [],
+            },
           ]);
           break;
         case 'recovered':
