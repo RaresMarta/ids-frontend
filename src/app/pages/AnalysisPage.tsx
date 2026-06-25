@@ -109,7 +109,7 @@ export default function AnalysisPage() {
             <input
               ref={fileRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.pcap,.pcapng,.cap"
               onChange={handleFileInput}
               className="hidden"
             />
@@ -137,7 +137,7 @@ export default function AnalysisPage() {
                 <div className="text-center">
                   <Upload className={`w-8 h-8 mx-auto mb-3 ${dragActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   <p className="text-sm text-foreground">
-                    Drop your <span className="font-mono uppercase text-foreground/80">.csv</span> file here
+                    Drop your <span className="font-mono uppercase text-foreground/80">.csv</span> or <span className="font-mono uppercase text-foreground/80">.pcap</span> file here
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
                 </div>

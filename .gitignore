@@ -3,3 +3,6 @@ dist
 .env
 *.local
 package-lock.json
+.vercel
+.env*
+.DS_Store

@@ -51,11 +51,6 @@ export default function LandingPage() {
             transition={{ duration: 0.5 }}
             className="flex flex-col"
           >
-            <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full w-fit bg-threat/10 border border-threat/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-threat" />
-              <span className="text-xs font-medium text-threat font-mono tracking-wide">CIC-IoT-2023</span>
-            </div>
-
             <h1 className="font-display text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.08] tracking-tight mb-6">
               Classify network threats with machine learning
             </h1>
