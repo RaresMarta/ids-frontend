@@ -1,11 +1,11 @@
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
-import { ThemeProvider } from './theme/ThemeProvider';
+import { AuthProvider } from '../hooks/useAuth';
 
 export default function App() {
   return (
-    <ThemeProvider>
+    <AuthProvider>
       <RouterProvider router={router} />
-    </ThemeProvider>
+    </AuthProvider>
   );
 }

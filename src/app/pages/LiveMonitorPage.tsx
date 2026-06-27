@@ -2,8 +2,7 @@ import StreamMonitor from '../components/monitor/StreamMonitor';
 import { useEventStream } from '../components/monitor/useEventStream';
 import { useSupabaseMonitor } from '../components/monitor/useSupabaseMonitor';
 import { useMonitors, monitorLabel, type Monitor } from '../../hooks/useMonitors';
-
-const DETECTOR_URL: string = import.meta.env.VITE_DETECTOR_URL ?? 'http://localhost:7870';
+import { DETECTOR_URL } from '../../lib/classifiers';
 
 /** Local detector over SSE — dev fallback when no monitor has registered in Supabase yet. */
 function SseContainer() {
@@ -23,7 +22,7 @@ function SseContainer() {
 /** The registered droplet sensor over the Supabase backplane, identified by its victim IP. */
 function SupabaseContainer({ monitor }: { monitor: Monitor }) {
   const label = monitorLabel(monitor);
-  const feed = useSupabaseMonitor(monitor.id, monitor.name);
+  const feed = useSupabaseMonitor(monitor.id);
   return (
     <StreamMonitor
       feed={feed}

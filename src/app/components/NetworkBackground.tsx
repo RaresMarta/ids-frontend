@@ -1,13 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { useTheme } from '../theme/ThemeProvider';
 
 /**
- * Subtle drifting-topology backdrop for the auth panels. Reads its palette from
- * theme tokens so it tracks light/dark (re-initialises on theme change).
+ * Subtle drifting-topology backdrop for the auth panels. Reads its accent from
+ * the theme tokens; the app is single light theme.
  */
 export default function NetworkBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -17,17 +15,15 @@ export default function NetworkBackground() {
 
     const css = getComputedStyle(document.documentElement);
     const get = (n: string, fb: string) => css.getPropertyValue(n).trim() || fb;
-    const bg = get('--background', '#faf9f5');
-    const isDark = theme === 'dark';
     // node + link colours expressed as rgba so we can fade by distance.
-    const nodeRgb = isDark ? '240, 237, 232' : '38, 38, 36';
+    const nodeRgb = '38, 38, 36';
     const linkBase = get('--primary', '#c15f3c');
     const linkRgb = (() => {
       const m = linkBase.replace('#', '');
       if (m.length < 6) return '193, 95, 60';
       return `${parseInt(m.slice(0, 2), 16)}, ${parseInt(m.slice(2, 4), 16)}, ${parseInt(m.slice(4, 6), 16)}`;
     })();
-    const trailRgb = isDark ? '11, 12, 16' : '250, 249, 245';
+    const trailRgb = '250, 249, 245';
 
     const resize = () => {
       canvas.width = canvas.offsetWidth;
@@ -60,7 +56,7 @@ export default function NetworkBackground() {
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${nodeRgb}, ${isDark ? 0.2 : 0.28})`;
+        ctx.fillStyle = `rgba(${nodeRgb}, 0.28)`;
         ctx.fill();
       });
 
@@ -73,7 +69,7 @@ export default function NetworkBackground() {
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.strokeStyle = `rgba(${linkRgb}, ${(isDark ? 0.08 : 0.12) * (1 - distance / 140)})`;
+            ctx.strokeStyle = `rgba(${linkRgb}, ${0.12 * (1 - distance / 140)})`;
             ctx.lineWidth = 0.75;
             ctx.stroke();
           }
@@ -88,7 +84,7 @@ export default function NetworkBackground() {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(frameId);
     };
-  }, [theme]);
+  }, []);
 
   return (
     <canvas

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { CircleUserRound, LayoutDashboard, LogOut } from 'lucide-react';
+import { CircleUserRound, FileText, LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 /**
  * Logged-in account indicator for the public landing nav — a generic user icon
- * that opens a small menu (jump to dashboard / sign out). Replaces the "Sign in"
- * button once a Supabase session exists.
+ * that opens a small menu (jump to the analysis app / sign out). Replaces the
+ * "Sign in" button once a Supabase session exists.
  */
 export default function UserMenu() {
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ export default function UserMenu() {
               }}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
             >
-              <LayoutDashboard className="w-4 h-4 text-muted-foreground shrink-0" />
+              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
               Analysis
             </button>
             <button

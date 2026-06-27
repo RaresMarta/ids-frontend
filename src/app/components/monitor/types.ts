@@ -62,19 +62,6 @@ export interface DetectorStats {
   uptime_s: number;
 }
 
-export interface DetectorHealth {
-  status: string;
-  mode: 'live' | 'replay' | 'simulate';
-  model: string;
-}
-
-/** One-second rate bucket for the timeline (t in ms epoch). */
-export interface RatePoint {
-  t: number;
-  flows: number;
-  blocked: number;
-}
-
 /**
  * A point on the aggregation-over-time chart (t in ms epoch). In Supabase mode these
  * are the persisted stats_snapshots rows (real history, survives reloads); in the local
@@ -84,22 +71,6 @@ export interface AggPoint {
   t: number;
   flows_total: number;
   malicious: number;
-}
-
-export interface TimelineMarker {
-  ts: number; // ms epoch
-  kind: 'alert' | 'recovered';
-  ip: string;
-  family?: string;
-}
-
-export interface ActiveAttacker {
-  ip: string;
-  family: string;
-  since: number; // ms epoch
-  confidence: number;
-  /** Real per-episode SHAP from the source's first alert; [] until/if it arrives. */
-  explanation: ShapFeature[];
 }
 
 /** Detector timestamps are epoch seconds; normalise to ms. */

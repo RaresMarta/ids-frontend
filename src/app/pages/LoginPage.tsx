@@ -1,21 +1,26 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Navigate } from 'react-router';
 import NetworkBackground from '../components/NetworkBackground';
 import { Shield, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { user, loading: authLoading, signIn, resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  // Already signed in → no reason to show the form.
+  if (!authLoading && user) return <Navigate to="/analysis" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setNotice('');
     try {
       await signIn(email, password);
       navigate('/analysis');
@@ -23,6 +28,21 @@ export default function LoginPage() {
       setError(err?.message ?? 'Sign-in failed. Check your credentials.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!email) {
+      setError('Enter your email above first, then choose “Forgot password?”.');
+      return;
+    }
+    setError('');
+    setNotice('');
+    try {
+      await resetPassword(email);
+      setNotice('Password reset link sent — check your email.');
+    } catch (err: any) {
+      setError(err?.message ?? 'Could not send the reset email.');
     }
   };
 
@@ -65,10 +85,11 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+              <label htmlFor="login-email" className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,14 +101,19 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <label htmlFor="login-password" className="block text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Password
                 </label>
-                <button type="button" className="text-xs text-primary hover:text-primary/80 transition-colors">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="text-xs text-primary hover:text-primary/80 transition-colors"
+                >
                   Forgot password?
                 </button>
               </div>
               <input
+                id="login-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -97,6 +123,9 @@ export default function LoginPage() {
               />
             </div>
 
+            {notice && (
+              <p className="text-xs text-safe" role="status">{notice}</p>
+            )}
             {error && (
               <p className="text-xs text-destructive" role="alert">{error}</p>
             )}

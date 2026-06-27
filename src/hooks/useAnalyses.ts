@@ -4,15 +4,18 @@ import { supabase, Analysis } from '../lib/supabase';
 export function useAnalyses() {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetch = async () => {
     setLoading(true);
+    setError(null);
     const { data, error } = await supabase
       .from('analyses')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(50);
-    if (!error && data) setAnalyses(data);
+    if (error) setError(error.message);
+    else if (data) setAnalyses(data);
     setLoading(false);
   };
 
@@ -23,8 +26,7 @@ export function useAnalyses() {
     if (!user) throw new Error('Not authenticated');
     const { error } = await supabase.from('analyses').insert({ ...entry, user_id: user.id });
     if (error) throw error;
-    await fetch();
   };
 
-  return { analyses, loading, saveAnalysis, refresh: fetch };
+  return { analyses, loading, error, saveAnalysis, refresh: fetch };
 }

@@ -25,6 +25,12 @@ export const router = createBrowserRouter([
     Component: RegisterPage,
   },
 
+  // Legacy paths fold into the consolidated analysis surface. Kept at the top
+  // level (not behind the guard) so old bookmarks forward instead of bouncing
+  // logged-out users to /login.
+  { path: "/dashboard", loader: () => redirect("/analysis") },
+  { path: "/results", loader: () => redirect("/analysis") },
+
   // ── Authenticated only ──────────────────────────────────────────────────────
   // Everything below requires a Supabase session; otherwise → /login.
   {
@@ -37,9 +43,9 @@ export const router = createBrowserRouter([
       { path: "/analysis/results", Component: ResultsPage },
       { path: "/compare", Component: ComparisonPage },
       { path: "/monitor", Component: LiveMonitorPage },
-      // Legacy paths fold into the consolidated analysis surface.
-      { path: "/dashboard", loader: () => redirect("/analysis") },
-      { path: "/results", loader: () => redirect("/analysis") },
     ],
   },
+
+  // Unknown URL → landing.
+  { path: "*", loader: () => redirect("/") },
 ]);

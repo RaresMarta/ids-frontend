@@ -1,12 +1,8 @@
-@custom-variant dark (&:is(.dark *));
-
 /* ───────────────────────────────────────────────────────────────────────────
-   LIGHT theme is the default (:root). DARK is the opt-in alternate (.dark),
-   toggled by ThemeProvider via a `dark` class on <html>.
-   Warm-neutral, Claude-adjacent: cream canvas, warm near-black ink, one
-   rationed clay accent. Semantic colours (threat/safe/warn/info) are tuned
-   per-theme so they stay legible on both surfaces — red reserved for genuine
-   threat.
+   Single light theme. Warm-neutral, Claude-adjacent: cream canvas, warm
+   near-black ink, one rationed clay accent. Semantic colours
+   (threat/safe/warn/info) are tuned for the light surface — red reserved for
+   genuine threat.
    ──────────────────────────────────────────────────────────────────────── */
 :root {
   --font-size: 16px;
@@ -66,59 +62,6 @@
   --attack-web: #c27a45;
   --attack-bruteforce: #b8923a;
   --attack-benign: #2e9e5b;
-}
-
-.dark {
-  --background: #0b0c10;
-  --foreground: #f0ede8;
-  --card: #13161d;
-  --card-foreground: #f0ede8;
-  --popover: #13161d;
-  --popover-foreground: #f0ede8;
-  --primary: #d97941;
-  --primary-foreground: #0b0c10;
-  --secondary: #1c1f2a;
-  --secondary-foreground: #9a9daa;
-  --muted: #181b24;
-  --muted-foreground: #8b8e9a;
-  --accent: #d97941;
-  --accent-foreground: #0b0c10;
-  --destructive: #dc4c4c;
-  --destructive-foreground: #f0ede8;
-  --border: rgba(255, 255, 255, 0.07);
-  --input: #181b24;
-  --input-background: #181b24;
-  --switch-background: #1c1f2a;
-  --ring: #d97941;
-
-  --threat: #e5616a;
-  --safe: #4ade80;
-  --warn: #fbbf24;
-  --info: #5b9bd5;
-
-  --chart-1: #d97941;
-  --chart-2: #4ade80;
-  --chart-3: #818cf8;
-  --chart-4: #dc4c4c;
-  --chart-5: #fbbf24;
-
-  --sidebar: #0d0f14;
-  --sidebar-foreground: #f0ede8;
-  --sidebar-primary: #d97941;
-  --sidebar-primary-foreground: #0b0c10;
-  --sidebar-accent: rgba(217, 121, 65, 0.08);
-  --sidebar-accent-foreground: #d97941;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #d97941;
-
-  --attack-ddos: #dc4c4c;
-  --attack-dos: #e8743a;
-  --attack-mirai: #9b7fd4;
-  --attack-recon: #5b9bd5;
-  --attack-spoofing: #c95d8f;
-  --attack-web: #d4875a;
-  --attack-bruteforce: #c9a84c;
-  --attack-benign: #4ade80;
 }
 
 @theme inline {

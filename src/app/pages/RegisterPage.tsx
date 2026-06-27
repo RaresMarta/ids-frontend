@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Navigate } from 'react-router';
 import NetworkBackground from '../components/NetworkBackground';
 import { Shield, CheckCircle2, XCircle, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { user, loading: authLoading, signUp } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +23,7 @@ export default function RegisterPage() {
     if (/[^a-zA-Z0-9]/.test(password)) score++;
 
     const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['var(--threat)', '#E8743A', '#C9A84C', 'var(--safe)'];
+    const colors = ['var(--threat)', 'var(--attack-dos)', 'var(--warn)', 'var(--safe)'];
     return {
       strength: (score / 4) * 100,
       label: labels[score - 1] || 'Weak',
@@ -34,6 +34,9 @@ export default function RegisterPage() {
   const { strength, label, color } = passwordStrength();
   const emailValid = email.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const passwordsMatch = password === confirmPassword;
+
+  // Already signed in → no reason to show the form.
+  if (!authLoading && user) return <Navigate to="/analysis" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,10 +92,11 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+              <label htmlFor="register-username" className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                 Username
               </label>
               <input
+                id="register-username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -103,11 +107,12 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+              <label htmlFor="register-email" className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                 Email
               </label>
               <div className="relative">
                 <input
+                  id="register-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -128,10 +133,11 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+              <label htmlFor="register-password" className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <input
+                id="register-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -153,11 +159,12 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
+              <label htmlFor="register-confirm" className="block text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">
                 Confirm password
               </label>
               <div className="relative">
                 <input
+                  id="register-confirm"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}

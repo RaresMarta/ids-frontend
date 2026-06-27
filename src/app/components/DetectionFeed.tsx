@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hero "detection feed": a looping replay of what the live monitor emits — a
-// stream of per-flow verdicts (8-class family + calibrated confidence), with an
-// alert→recovered lifecycle when one source sustains an attack. The shape mirrors
-// the detector's SSE flow/alert/recovered events; in production this can be fed a
-// recorded session so it is literally real model output. Theme-token aware so it
-// tracks light/dark like the rest of the page.
+// Hero "detection feed": a looping, scripted sample of what the live monitor
+// emits — a stream of per-flow verdicts (8-class family + plausible confidence
+// bands), with an alert→recovered lifecycle when one source sustains an attack.
+// The shape mirrors the detector's SSE flow/alert/recovered events, but the rows
+// here are generated illustration, not live model output (see the caption).
 // ─────────────────────────────────────────────────────────────────────────────
 
 type Label = 'Benign' | 'DDoS' | 'DoS' | 'Mirai' | 'Recon' | 'Spoofing' | 'Web' | 'BruteForce';
@@ -136,7 +135,7 @@ export default function DetectionFeed() {
   for (let i = 0; i <= VISIBLE + 1; i++) visibleRows.push(FEED[(startIndex + i) % FEED.length]);
 
   return (
-    <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ height: 380 }}>
+    <div className="bg-card border border-border rounded-md shadow-sm overflow-hidden flex flex-col" style={{ height: 380 }}>
       {/* Terminal-style top bar */}
       <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border shrink-0">
         <span className="w-2.5 h-2.5 rounded-full bg-muted" />
@@ -144,7 +143,7 @@ export default function DetectionFeed() {
         <span className="w-2.5 h-2.5 rounded-full bg-muted" />
         <span className="ml-3 font-mono text-xs text-muted-foreground/60">live capture · eth0</span>
         <span className="ml-auto flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: '#2E9E5B' }} />
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--safe)' }} />
           <span className="font-mono text-xs text-muted-foreground/60">monitoring</span>
         </span>
       </div>
@@ -210,9 +209,9 @@ export default function DetectionFeed() {
         </div>
       </div>
 
-      {/* Honest provenance caption */}
+      {/* Honest provenance caption — this hero feed is a scripted sample, not live model output. */}
       <div className="px-4 py-2 border-t border-border/50 shrink-0">
-        <span className="font-mono text-[10px] text-muted-foreground/40 tracking-wide">real model output · replayed</span>
+        <span className="font-mono text-[10px] text-muted-foreground/40 tracking-wide">illustrative sample · scripted replay</span>
       </div>
 
       <style>{`

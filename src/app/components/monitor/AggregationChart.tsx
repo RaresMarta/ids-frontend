@@ -86,8 +86,8 @@ export default function AggregationChart({ data }: { data: AggPoint[] }) {
               tickLine={false}
               tickFormatter={(v) => `${round1(v)}`}
             />
-            <Area type="monotone" dataKey="flows" stroke="var(--primary)" strokeWidth={1.5} fill="rgba(217,121,65,0.14)" isAnimationActive={false} />
-            <Area type="monotone" dataKey="malicious" stroke="var(--threat)" strokeWidth={1.5} fill="rgba(220,76,76,0.22)" isAnimationActive={false} />
+            <Area type="monotone" dataKey="flows" stroke="var(--primary)" strokeWidth={1.5} fill="color-mix(in srgb, var(--primary) 14%, transparent)" isAnimationActive={false} />
+            <Area type="monotone" dataKey="malicious" stroke="var(--threat)" strokeWidth={1.5} fill="color-mix(in srgb, var(--threat) 22%, transparent)" isAnimationActive={false} />
             <Tooltip content={<RateTooltip />} />
           </ComposedChart>
         </ResponsiveContainer>
