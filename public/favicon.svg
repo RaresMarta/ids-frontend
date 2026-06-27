@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="7" fill="#c15f3c"/>
+  <!-- lucide "shield" glyph, centered + scaled, drawn in white -->
+  <path d="M16 6 L24 9 V15 C24 20 20.5 23.5 16 26 C11.5 23.5 8 20 8 15 V9 Z"
+        fill="none" stroke="#ffffff" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
