@@ -53,7 +53,7 @@ export default function ComparisonPage() {
                   {METRIC_ROWS.map((row, i) => {
                     const best = Math.max(...MODELS.map((m) => m.metrics[row.key]));
                     return (
-                      <tr key={row.key} className={i < METRIC_ROWS.length - 1 ? 'border-b border-border' : ''}>
+                      <tr key={row.key} className={`transition-colors hover:bg-muted/40 ${i < METRIC_ROWS.length - 1 ? 'border-b border-border' : ''}`}>
                         <td className="px-5 py-3 text-xs text-foreground/70">{row.label}</td>
                         {MODELS.map((m) => {
                           const value = m.metrics[row.key];

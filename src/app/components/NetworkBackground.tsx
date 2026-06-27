@@ -55,9 +55,13 @@ export default function NetworkBackground() {
         if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
 
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${nodeRgb}, 0.28)`;
+        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
+        // soft clay glow so nodes read on a projector / in screenshots.
+        ctx.shadowColor = `rgba(${linkRgb}, 0.5)`;
+        ctx.shadowBlur = 6;
+        ctx.fillStyle = `rgba(${nodeRgb}, 0.55)`;
         ctx.fill();
+        ctx.shadowBlur = 0;
       });
 
       for (let i = 0; i < nodes.length; i++) {
@@ -69,8 +73,8 @@ export default function NetworkBackground() {
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.strokeStyle = `rgba(${linkRgb}, ${0.12 * (1 - distance / 140)})`;
-            ctx.lineWidth = 0.75;
+            ctx.strokeStyle = `rgba(${linkRgb}, ${0.32 * (1 - distance / 140)})`;
+            ctx.lineWidth = 0.9;
             ctx.stroke();
           }
         }

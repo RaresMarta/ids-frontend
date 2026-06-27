@@ -39,13 +39,16 @@ export default function Sidebar({ active }: SidebarProps) {
             <button
               key={id}
               onClick={() => !isActive && navigate(path)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+              className={`relative w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-foreground/5'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                  : 'text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-foreground/5'
               }`}
             >
-              <Icon className="w-4 h-4 shrink-0" />
+              {isActive && (
+                <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary" />
+              )}
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
               <span>{label}</span>
             </button>
           );

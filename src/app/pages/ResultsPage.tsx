@@ -13,6 +13,12 @@ export default function ResultsPage() {
   const result = location.state?.result;
   const saved = useRef(false);
   const [saveError, setSaveError] = useState('');
+  // Drives the on-mount reveal: ring fills and bars grow from zero on first paint.
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const t = requestAnimationFrame(() => setRevealed(true));
+    return () => cancelAnimationFrame(t);
+  }, []);
 
   // Persist the classification once, when we first land here with a real result.
   useEffect(() => {
@@ -143,9 +149,9 @@ export default function ResultsPage() {
                     fill="none"
                     stroke={topColor}
                     strokeWidth="8"
-                    strokeDasharray={`${conf * circumference} ${circumference}`}
+                    strokeDasharray={`${(revealed ? conf : 0) * circumference} ${circumference}`}
                     strokeLinecap="round"
-                    style={{ opacity: 0.85 }}
+                    style={{ opacity: 0.85, transition: 'stroke-dasharray 900ms cubic-bezier(0.22,1,0.36,1)' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -169,8 +175,8 @@ export default function ResultsPage() {
                     </div>
                     <div className="w-full h-1 bg-border rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${prob.value * 100}%`, backgroundColor: prob.color, opacity: 0.8 }}
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${(revealed ? prob.value : 0) * 100}%`, backgroundColor: prob.color, opacity: 0.8 }}
                       />
                     </div>
                   </div>

@@ -122,7 +122,7 @@ export default function AnalysisPage() {
                       return (
                         <tr
                           key={entry.id}
-                          className={`transition-colors ${
+                          className={`transition-colors hover:bg-muted/40 ${
                             i < filteredHistory.length - 1 ? 'border-b border-border' : ''
                           }`}
                         >
