@@ -1,9 +1,9 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, redirect } from "react-router";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import DashboardPage from "./pages/DashboardPage";
 import AnalysisPage from "./pages/AnalysisPage";
+import ClassifyPage from "./pages/ClassifyPage";
 import ComparisonPage from "./pages/ComparisonPage";
 import ResultsPage from "./pages/ResultsPage";
 import LiveMonitorPage from "./pages/LiveMonitorPage";
@@ -30,11 +30,16 @@ export const router = createBrowserRouter([
   {
     Component: ProtectedRoute,
     children: [
-      { path: "/dashboard", Component: DashboardPage },
+      // Analysis is the home surface (classifier overview + history). Classify and the
+      // classification report are nested pages reached via in-page buttons / back links.
       { path: "/analysis", Component: AnalysisPage },
+      { path: "/analysis/classify", Component: ClassifyPage },
+      { path: "/analysis/results", Component: ResultsPage },
       { path: "/compare", Component: ComparisonPage },
-      { path: "/results", Component: ResultsPage },
       { path: "/monitor", Component: LiveMonitorPage },
+      // Legacy paths fold into the consolidated analysis surface.
+      { path: "/dashboard", loader: () => redirect("/analysis") },
+      { path: "/results", loader: () => redirect("/analysis") },
     ],
   },
 ]);

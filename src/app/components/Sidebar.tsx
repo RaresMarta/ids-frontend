@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router';
-import { Shield, BarChart3, FileText, Scale, Activity, LogOut } from 'lucide-react';
+import { Shield, FileText, Scale, Activity, LogOut } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 interface SidebarProps {
-  active: 'dashboard' | 'analysis' | 'compare' | 'monitor';
+  active: 'analysis' | 'compare' | 'monitor';
 }
 
 export default function Sidebar({ active }: SidebarProps) {
@@ -16,7 +16,6 @@ export default function Sidebar({ active }: SidebarProps) {
   };
 
   const items = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, path: '/dashboard' },
     { id: 'analysis', label: 'Analysis', icon: FileText, path: '/analysis' },
     { id: 'compare', label: 'Compare', icon: Scale, path: '/compare' },
     { id: 'monitor', label: 'Live Monitor', icon: Activity, path: '/monitor' },

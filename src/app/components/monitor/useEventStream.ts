@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   toMs,
   type ActiveAttacker,
+  type AggPoint,
   type DetectorHealth,
   type DetectorStats,
   type FeedItem,
@@ -40,6 +41,7 @@ export function useEventStream(baseUrl: string) {
   const [markers, setMarkers] = useState<TimelineMarker[]>([]);
   const [activeAttackers, setActiveAttackers] = useState<ActiveAttacker[]>([]);
   const [stats, setStats] = useState<DetectorStats | null>(null);
+  const [aggSeries, setAggSeries] = useState<AggPoint[]>([]);
   const [health, setHealth] = useState<DetectorHealth | null>(null);
   const [connection, setConnection] = useState<ConnectionState>('connecting');
 
@@ -147,7 +149,14 @@ export function useEventStream(baseUrl: string) {
         get('/api/health'),
       ]);
       if (disposed) return;
-      if (s.status === 'fulfilled') setStats(s.value as DetectorStats);
+      if (s.status === 'fulfilled') {
+        const v = s.value as DetectorStats;
+        setStats(v);
+        // No persisted history over SSE — accumulate the over-time series client-side.
+        setAggSeries((prev) =>
+          [...prev, { t: Date.now(), flows_total: v.flows_total, malicious: v.malicious }].slice(-240),
+        );
+      }
       if (h.status === 'fulfilled') setHealth(h.value as DetectorHealth);
     };
 
@@ -179,6 +188,7 @@ export function useEventStream(baseUrl: string) {
     markers,
     activeAttackers,
     stats,
+    aggSeries,
     health,
     connection,
     inject,

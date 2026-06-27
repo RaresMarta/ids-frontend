@@ -48,12 +48,12 @@ export default function UserMenu() {
             <button
               onClick={() => {
                 setOpen(false);
-                navigate('/dashboard');
+                navigate('/analysis');
               }}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors text-left"
             >
               <LayoutDashboard className="w-4 h-4 text-muted-foreground shrink-0" />
-              Dashboard
+              Analysis
             </button>
             <button
               onClick={handleSignOut}

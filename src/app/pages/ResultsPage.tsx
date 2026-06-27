@@ -73,7 +73,7 @@ export default function ResultsPage() {
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
-            New analysis
+            Analysis history
           </button>
           <div className="w-px h-4 bg-border" />
           <h2 className="font-display text-lg text-foreground">Classification result</h2>

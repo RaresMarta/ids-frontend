@@ -42,7 +42,7 @@ export default function RegisterPage() {
     setError('');
     try {
       await signUp(email, password, username);
-      navigate('/dashboard');
+      navigate('/analysis');
     } catch (err: any) {
       setError(err?.message ?? 'Registration failed. Try a different email.');
     } finally {

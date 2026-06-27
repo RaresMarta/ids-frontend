@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError('');
     try {
       await signIn(email, password);
-      navigate('/dashboard');
+      navigate('/analysis');
     } catch (err: any) {
       setError(err?.message ?? 'Sign-in failed. Check your credentials.');
     } finally {

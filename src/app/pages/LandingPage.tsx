@@ -62,10 +62,10 @@ export default function LandingPage() {
 
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate(user ? '/dashboard' : '/login')}
+                onClick={() => navigate(user ? '/analysis' : '/login')}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-foreground text-background text-sm rounded-md hover:opacity-90 transition-opacity"
               >
-                {user ? 'Go to dashboard' : 'Get started'}
+                {user ? 'Go to analysis' : 'Get started'}
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
               {!user && (

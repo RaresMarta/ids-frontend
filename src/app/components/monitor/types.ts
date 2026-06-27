@@ -75,6 +75,17 @@ export interface RatePoint {
   blocked: number;
 }
 
+/**
+ * A point on the aggregation-over-time chart (t in ms epoch). In Supabase mode these
+ * are the persisted stats_snapshots rows (real history, survives reloads); in the local
+ * SSE path they are accumulated client-side from /api/stats polls.
+ */
+export interface AggPoint {
+  t: number;
+  flows_total: number;
+  malicious: number;
+}
+
 export interface TimelineMarker {
   ts: number; // ms epoch
   kind: 'alert' | 'recovered';
@@ -93,23 +104,3 @@ export interface ActiveAttacker {
 
 /** Detector timestamps are epoch seconds; normalise to ms. */
 export const toMs = (ts: number) => (ts > 1e12 ? ts : ts * 1000);
-
-/** Families with a dedicated AttackStage visual; everything else uses the generic pulse. */
-export const RICH_SIGNATURE_FAMILIES = new Set(['DDoS', 'DoS', 'Mirai', 'Recon']);
-
-/**
- * Below this 8-class family confidence the per-type signature falls back to the
- * generic pulse. In live mode the family head mislabels real attack tools
- * ("Spoofing"); only the 2-class gate is trusted there.
- */
-export const FAMILY_CONFIDENCE_FLOOR = 0.85;
-
-export const MITRE_TAGS: Record<string, string> = {
-  DDoS: 'T1498',
-  DoS: 'T1499',
-  Recon: 'T1595',
-  Mirai: 'T1584.005',
-  Spoofing: 'T1557',
-  Web: 'T1190',
-  BruteForce: 'T1110',
-};
