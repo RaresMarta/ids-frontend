@@ -40,10 +40,15 @@ export default function ClassifyPage() {
       form.append('mode', '8');
       form.append('split', 'random');
 
+      // Measure the full client-observed round trip (upload + server compute +
+      // download). Subtracting the server's own total isolates the network cost.
+      const t0 = performance.now();
       const res = await fetch(`${API_URL}/api/classify`, { method: 'POST', body: form });
       const data = await res.json();
+      const clientRoundTripMs = Math.round(performance.now() - t0);
       if (!res.ok || data.error) throw new Error(data.error ?? `Server error (${res.status})`);
 
+      data.client_round_trip_ms = clientRoundTripMs;
       navigate('/analysis/results', { state: { result: data }, replace: true });
     } catch (err: any) {
       setError(err?.message ?? 'Analysis failed. Is the model server running?');

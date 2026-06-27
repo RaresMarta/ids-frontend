@@ -26,6 +26,10 @@ export interface FlowEvent {
   probabilities: Record<string, number>;
   top_features: ShapFeature[]; // per-flow saliency proxy (not rendered in the live UI)
   n_packets: number;
+  // Server-side per-window latency spans (ms): queue_wait_ms, preprocess_ms,
+  // inference_ms (pure model call), detect_ms (total since dequeue). Emitted by
+  // detector._handle so the live UI can show how little of it is the model.
+  timing?: Record<string, number>;
 }
 
 export interface AlertEvent {

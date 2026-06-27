@@ -32,6 +32,17 @@ export default function FlowDetailDrawer({ flow, open, onOpenChange }: Props) {
     : [];
   const features = flow?.top_features ?? [];
 
+  // Per-window latency spans from the detector. inference_ms is the pure model
+  // call; detect_ms is the total from dequeue to publish.
+  const timing = flow?.timing ?? {};
+  const TIMING_LABELS: [string, string][] = [
+    ['queue_wait_ms', 'Queue wait'],
+    ['preprocess_ms', 'Preprocess'],
+    ['inference_ms', 'Inference'],
+    ['detect_ms', 'Detect total'],
+  ];
+  const timingRows = TIMING_LABELS.filter(([k]) => timing[k] != null);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
@@ -70,6 +81,24 @@ export default function FlowDetailDrawer({ flow, open, onOpenChange }: Props) {
               <dt className="text-muted-foreground">Flow ID</dt>
               <dd className="font-mono text-muted-foreground text-right">{flow.flow_id}</dd>
             </dl>
+
+            {/* latency — server-side per-window timing */}
+            {timingRows.length > 0 && (
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-2">Latency</p>
+                <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-xs">
+                  {timingRows.map(([k, label]) => (
+                    <div key={k} className="contents">
+                      <dt className={k === 'inference_ms' ? 'text-foreground' : 'text-muted-foreground'}>{label}</dt>
+                      <dd className="font-mono text-right tabular-nums text-foreground">{timing[k].toFixed(3)} ms</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="text-[11px] text-muted-foreground/70 mt-2">
+                  Inference is the pure model call; the rest is queueing and feature handling.
+                </p>
+              </div>
+            )}
 
             {/* class probabilities */}
             <div>

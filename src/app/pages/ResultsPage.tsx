@@ -68,6 +68,27 @@ export default function ResultsPage() {
     ['Processing time', result.processing_time_ms != null ? `${result.processing_time_ms} ms` : '—'],
   ];
 
+  // Latency decomposition. Server spans come from the backend `timing` block;
+  // the client round trip is measured in the browser. network = round trip − server.
+  const timing = (result.timing ?? {}) as Record<string, number>;
+  const serverTotal = timing.total_server_ms ?? result.processing_time_ms;
+  const clientRT = result.client_round_trip_ms as number | undefined;
+  const networkMs =
+    clientRT != null && serverTotal != null ? Math.max(0, Math.round(clientRT - serverTotal)) : undefined;
+  const SPAN_LABELS: [string, string][] = [
+    ['read_ms', 'Read upload'],
+    ['extract_ms', 'Feature extraction'],
+    ['preprocess_ms', 'Preprocess / scale'],
+    ['inference_ms', 'Model inference'],
+    ['aggregate_ms', 'Aggregate'],
+    ['explain_ms', 'SHAP explanation'],
+  ];
+  const spanRows = SPAN_LABELS
+    .filter(([k]) => timing[k] != null)
+    .map(([k, label]) => ({ label, ms: timing[k], key: k }));
+  const spanMax = Math.max(...spanRows.map((r) => r.ms), 1e-9);
+  const hasTiming = spanRows.length > 0 || clientRT != null;
+
   return (
     <AppShell active="analysis">
       <PageHeader
@@ -172,6 +193,64 @@ export default function ResultsPage() {
               ))}
             </div>
           </div>
+
+          {/* Latency breakdown — where the end-to-end time went */}
+          {hasTiming && (
+            <div className="bg-card border border-border rounded-md p-6">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+                Latency breakdown
+              </p>
+              <div className="space-y-2.5">
+                {spanRows.map((r) => (
+                  <div key={r.key} className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-foreground/70 w-40 truncate shrink-0">{r.label}</span>
+                    <div className="flex-1 h-1.5 bg-border rounded-sm overflow-hidden">
+                      <div
+                        className="h-full rounded-sm transition-all duration-700"
+                        style={{
+                          width: `${(r.ms / spanMax) * 100}%`,
+                          backgroundColor: r.key === 'inference_ms' ? 'var(--primary)' : 'var(--info)',
+                        }}
+                      />
+                    </div>
+                    <span className="font-mono text-[11px] text-muted-foreground w-20 text-right shrink-0">
+                      {r.ms.toFixed(2)} ms
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-5 pt-4 border-t border-border">
+                {timing.inference_per_flow_ms != null && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Inference / flow</p>
+                    <p className="font-mono text-xs text-foreground">{timing.inference_per_flow_ms.toFixed(4)} ms</p>
+                  </div>
+                )}
+                {serverTotal != null && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Server total</p>
+                    <p className="font-mono text-xs text-foreground">{Number(serverTotal).toFixed(1)} ms</p>
+                  </div>
+                )}
+                {networkMs != null && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Network round trip</p>
+                    <p className="font-mono text-xs text-foreground">{networkMs} ms</p>
+                  </div>
+                )}
+                {clientRT != null && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">End-to-end (client)</p>
+                    <p className="font-mono text-xs text-foreground">{clientRT} ms</p>
+                  </div>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground/70 mt-4">
+                Highlighted bar is the pure model inference; the rest is the work around it.
+                Network round trip = client end-to-end − server total.
+              </p>
+            </div>
+          )}
 
           {/* Top contributing features — SHAP attribution for the dominant verdict */}
           {topFeatures.length > 0 && (
