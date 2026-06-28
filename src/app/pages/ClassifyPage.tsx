@@ -4,8 +4,12 @@ import { Upload } from 'lucide-react';
 import { AppShell, PageHeader, PageBody } from '../components/AppShell';
 import { MODELS } from '../data/models';
 import { API_URL } from '../../lib/classifiers';
+import FlowForm from '../components/FlowForm';
 
 const ACCEPTED = ['.csv', '.pcap', '.pcapng', '.cap'];
+
+type Mode = '2' | '8';
+type View = 'upload' | 'manual';
 
 const hasAcceptedExtension = (name: string) =>
   ACCEPTED.some((ext) => name.toLowerCase().endsWith(ext));
@@ -15,6 +19,8 @@ export default function ClassifyPage() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const [modelId, setModelId] = useState(MODELS[0].id);
+  const [mode, setMode] = useState<Mode>('8');
+  const [view, setView] = useState<View>('upload');
   const [dragActive, setDragActive] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +43,7 @@ export default function ClassifyPage() {
       const form = new FormData();
       form.append('file', file);
       form.append('model_type', modelId);
-      form.append('mode', '8');
+      form.append('mode', mode);
       form.append('split', 'random');
 
       // Measure the full client-observed round trip (upload + server compute +
@@ -119,6 +125,52 @@ export default function ClassifyPage() {
             </div>
           </div>
 
+          {/* Granularity (binary vs family) — applies to both upload and manual */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+              Granularity
+            </p>
+            <div className="flex gap-2">
+              {([['2', 'Binary', 'Benign vs Attack'], ['8', '8-class', 'Attack family']] as const).map(
+                ([m, label, sub]) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    disabled={isProcessing}
+                    className={`flex-1 p-3 rounded-md border text-left transition-all disabled:opacity-60 ${
+                      mode === m
+                        ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/15'
+                        : 'border-border bg-card hover:border-border/60'
+                    }`}
+                  >
+                    <div className={`text-sm font-medium ${mode === m ? 'text-foreground' : 'text-foreground/70'}`}>{label}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+
+          {/* Input method: file upload vs manual flow entry */}
+          <div className="flex gap-1 p-1 bg-muted/40 rounded-md w-fit">
+            {([['upload', 'Upload file'], ['manual', 'Enter flow manually']] as const).map(([v, label]) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                disabled={isProcessing}
+                className={`px-3 py-1.5 rounded text-xs font-medium transition-all disabled:opacity-60 ${
+                  view === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {view === 'manual' ? (
+            <FlowForm modelId={modelId} mode={mode} />
+          ) : (
+          <>
           {/* Drop zone */}
           <input
             ref={fileRef}
@@ -172,6 +224,8 @@ export default function ClassifyPage() {
             <div className="px-4 py-3 bg-destructive/8 border border-destructive/25 rounded-md text-xs text-destructive" role="alert">
               {error}
             </div>
+          )}
+          </>
           )}
 
         </div>
