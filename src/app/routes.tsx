@@ -4,7 +4,6 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import ClassifyPage from "./pages/ClassifyPage";
-import ComparisonPage from "./pages/ComparisonPage";
 import ResultsPage from "./pages/ResultsPage";
 import LiveMonitorPage from "./pages/LiveMonitorPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -41,7 +40,6 @@ export const router = createBrowserRouter([
       { path: "/analysis", Component: AnalysisPage },
       { path: "/analysis/classify", Component: ClassifyPage },
       { path: "/analysis/results", Component: ResultsPage },
-      { path: "/compare", Component: ComparisonPage },
       { path: "/monitor", Component: LiveMonitorPage },
     ],
   },

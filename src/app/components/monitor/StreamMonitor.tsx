@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react';
 import Sidebar from '../Sidebar';
-import AggregationChart from './AggregationChart';
 import FlowDetailDrawer from './FlowDetailDrawer';
 import StreamTable from './StreamTable';
 import { type ConnectionState, useEventStream } from './useEventStream';
@@ -23,7 +22,7 @@ interface Props {
 
 /** Minimal streaming monitor: customer picker · aggregation chart · live flow stream · detail drawer. */
 export default function StreamMonitor({ feed, subtitle, picker }: Props) {
-  const { events, stats, aggSeries, connection } = feed;
+  const { events, stats, connection } = feed;
   const [selected, setSelected] = useState<FlowEvent | null>(null);
 
   const conn = CONNECTION_LABEL[connection];
@@ -63,7 +62,6 @@ export default function StreamMonitor({ feed, subtitle, picker }: Props) {
         </header>
 
         <div className="flex-1 min-h-0 flex flex-col gap-4 p-6">
-          <AggregationChart data={aggSeries} />
           <StreamTable items={events} onSelect={setSelected} selectedId={selected?.flow_id ?? null} />
         </div>
       </main>

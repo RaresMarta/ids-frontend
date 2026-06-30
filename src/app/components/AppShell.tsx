@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { ChevronLeft } from 'lucide-react';
 import Sidebar from './Sidebar';
 
-type ActivePage = 'analysis' | 'compare' | 'monitor';
+type ActivePage = 'analysis' | 'monitor';
 
 /**
  * Standard authenticated page frame: fixed-height viewport shell with the sidebar
