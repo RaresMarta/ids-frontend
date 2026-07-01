@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Shield, ChevronRight, Github } from 'lucide-react';
+import { Shield, ChevronRight } from 'lucide-react';
 import DetectionFeed from '../components/DetectionFeed';
 import UserMenu from '../components/UserMenu';
 import { useAuth } from '../../hooks/useAuth';
@@ -90,22 +90,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border/60">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between text-sm text-muted-foreground">
-          <span>Neural IDS</span>
-          <a
-            href="https://github.com/RaresMarta/cic-iot2023-detection-system"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 hover:text-foreground transition-colors"
-          >
-            <Github className="w-4 h-4" />
-            Backend source
-          </a>
-        </div>
-      </footer>
     </div>
   );
 }
